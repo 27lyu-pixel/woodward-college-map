@@ -10,7 +10,6 @@ const Debug = (() => {
       <tr class="${r.skip ? "bad" : r.warn ? "warn" : ""}">
         <td>${r.row}</td><td>${esc(r.student)}</td><td>${esc(r.college)}</td>
         <td>${esc(CONFIG.categories[r.status]?.label || r.status)}</td>
-        <td>${r.scholarship ? "$" + r.scholarship.toLocaleString("en-US") : ""}</td>
         <td>${r.skip ? "Not shown" : esc(r.matched)}</td>
         <td>${r.color ? `<span class="swatch" style="background:${esc(r.color)}"></span>${esc(r.color)}` : "default"}</td>
       </tr>`).join("");
@@ -21,8 +20,9 @@ const Debug = (() => {
       <h2>Slideshow data <small>press D to close</small></h2>
       <p>Today: <b>${data.label.today}</b> &middot; Playing rotation: <b>${data.label.rotation}</b>
          &middot; ${data.batch.filter(data.playable).length} of ${data.batch.length} rows shown
+         &middot; Scholarship total: <b>${data.scholarships == null ? "not set up" : "$" + data.scholarships.toLocaleString("en-US")}</b>
          &middot; Sheet: <code>${esc(CONFIG.data.csvUrl)}</code></p>
-      <table><tr><th>Row</th><th>Student</th><th>College (sheet)</th><th>Status</th><th>Scholarship</th><th>Matched to</th><th>Color</th></tr>${rows}</table>
+      <table><tr><th>Row</th><th>Student</th><th>College (sheet)</th><th>Status</th><th>Matched to</th><th>Color</th></tr>${rows}</table>
       <h3>Flags</h3>${flags}
       <p class="hint">Test another date: add <code>?debug=1&amp;today=2026-11-20</code> to the URL.</p>`;
   }

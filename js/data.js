@@ -1,9 +1,7 @@
 // Loads the sheet CSV, picks the current rotation, and finds each college on the map.
 //
-// Sheet columns: Rotation start | Student name | College | City | State | Status | Scholarship | Photo
+// Sheet columns: Rotation start | Student name | College | City | State | Status | Photo
 // - Status is "Accepted" or "Committed" (blank = CONFIG.categories.default).
-// - Scholarship is optional: money that college offered ("$120,000", "120000", "120k").
-//   The finale adds them all up.
 // - Photo is optional: the student's yearbook photo (Google Drive link or a file in assets/photos/).
 // - City and State are optional: they're filled in from the matched college. They're only
 //   needed to tell apart same-named colleges, or to place a college that isn't in the list.
@@ -12,6 +10,8 @@
 // - Rows play in sheet order, except (see CONFIG.order and playOrder below): a Georgia
 //   college never plays first, and two students at the same college never play back to back.
 // Colleges are matched against data/colleges.json (IPEDS) plus data/college-extras.json.
+// The scholarship total comes from a separate published tab (CONFIG.data.totalsCsvUrl) holding
+// only the sum, so each student's amount stays on the sheet's private Scholarships tab.
 // Problems never stop the show: they are collected in `flags` (console + debug panel).
 const Data = (() => {
   const STATES = {
@@ -113,22 +113,40 @@ const Data = (() => {
 
   // ---------- CSV ----------
 
-  async function fetchCsv(flags) {
-    const url = CONFIG.data.csvUrl;
+  async function fetchCsv(flags, url = CONFIG.data.csvUrl, cacheKey = CACHE_KEY, what = "the sheet") {
     try {
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
       // A trial sheet (?csv=) never replaces the saved copy of the real one.
-      if (!CONFIG.data.trial) try { localStorage.setItem(CACHE_KEY, text); } catch (e) {}
+      if (!CONFIG.data.trial) try { localStorage.setItem(cacheKey, text); } catch (e) {}
       return text;
     } catch (err) {
       let cached = null;
-      try { cached = localStorage.getItem(CACHE_KEY); } catch (e) {}
-      if (!cached) throw new Error(`Could not load the sheet (${url}): ${err.message}`);
-      flags.push({ row: null, message: `Could not load the sheet (${err.message}); using the last copy that loaded.` });
+      try { cached = localStorage.getItem(cacheKey); } catch (e) {}
+      if (!cached) throw new Error(`Could not load ${what} (${url}): ${err.message}`);
+      flags.push({ row: null, message: `Could not load ${what} (${err.message}); using the last copy that loaded.` });
       return cached;
     }
+  }
+
+  // The "Scholarship total" tab: a "Scholarship total" heading with the amount under it.
+  // Returns dollars, or null when it isn't set up or can't be read (the finale hides the line).
+  async function scholarshipTotal(flags) {
+    const url = CONFIG.data.totalsCsvUrl;
+    if (!url) return null;
+    let text;
+    try { text = await fetchCsv(flags, url, CACHE_KEY + "-totals", "the scholarship total"); }
+    catch (err) { flags.push({ row: null, message: err.message }); return null; }
+    const raw = d3.csvParse(text);
+    const header = raw.columns.find(h => norm(h).includes("scholar"));
+    const cell = header ? raw.map(r => (r[header] || "").trim()).find(Boolean) : undefined;
+    const total = parseMoney(cell);
+    if (!header || cell === undefined || total === null) {
+      flags.push({ row: null, message: `The scholarship total tab should have "Scholarship total" in A1 and the amount in A2 (found ${JSON.stringify(text.slice(0, 60))}).` });
+      return null;
+    }
+    return total;
   }
 
   // Map header names to our fields, tolerating case and extra spaces.
@@ -141,7 +159,7 @@ const Data = (() => {
       city: find("city"),
       state: find("state"),
       status: find("status") || find("category") || find("type"),
-      scholarship: find("scholar") || find("aid") || find("award"),
+      scholarship: find("scholar") || find("aid") || find("award"),   // only to warn: it's public
       photo: find("photo") || find("picture") || find("image"),
     };
   }
@@ -157,7 +175,7 @@ const Data = (() => {
     return "assets/photos/" + t.split("/").map(encodeURIComponent).join("/");
   }
 
-  // "$120,000", "120000", "$120k", "1.5M", "$30,000/yr" -> dollars; blank/"none" -> 0; else null.
+  // "$120,000", "120000", "$120k", "1.5M" -> dollars; blank/"none" -> 0; else null.
   function parseMoney(text) {
     const t = (text || "").replace(/[$,\s]/g, "").toLowerCase();
     if (!t || /^(none|n\/?a|-+|0+(\.0+)?)$/.test(t)) return 0;
@@ -179,10 +197,11 @@ const Data = (() => {
 
   async function load() {
     const flags = [];
-    const [text, ipeds, extras] = await Promise.all([
+    const [text, ipeds, extras, scholarships] = await Promise.all([
       fetchCsv(flags),
       d3.json("data/colleges.json"),
       d3.json("data/college-extras.json"),
+      scholarshipTotal(flags),
     ]);
     buildIndex(ipeds, extras);
 
@@ -191,6 +210,7 @@ const Data = (() => {
     for (const [field, header] of Object.entries(col)) {
       if (!header && !["city", "status", "scholarship", "photo"].includes(field)) flags.push({ row: null, message: `No "${field}" column found in the sheet.` });
     }
+    if (col.scholarship) flags.push({ row: null, message: `The Students tab has a "${col.scholarship}" column. Everything on that tab is public: move the amounts to the private Scholarships tab.` });
 
     let lastDate = null;
     const rows = [];
@@ -208,12 +228,7 @@ const Data = (() => {
         status = CONFIG.categories.default;
         flags.push({ row, message: `Status "${get("status")}" isn't Accepted or Committed; showing it as ${CONFIG.categories[status].label}.` });
       }
-      let scholarship = parseMoney(get("scholarship"));
-      if (scholarship === null) {
-        scholarship = 0;
-        flags.push({ row, message: `Can't read the scholarship "${get("scholarship")}" (type a dollar amount like 40000); not counted.` });
-      }
-      rows.push({ row, date, student, college, city: get("city"), state: get("state").toUpperCase(), status, scholarship,
+      rows.push({ row, date, student, college, city: get("city"), state: get("state").toUpperCase(), status,
                   photo: photoUrl(get("photo")) });
     });
 
@@ -258,6 +273,7 @@ const Data = (() => {
       batch: past.filter(r => +r.date === +rotation),   // every row of the current rotation, incl. skipped
       season: past,                                     // every rotation up to today
       playable,
+      scholarships,   // total dollars offered (whole year), or null
       flags,
     };
   }

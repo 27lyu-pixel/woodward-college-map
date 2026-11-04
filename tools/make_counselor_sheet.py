@@ -3,8 +3,9 @@
     python3 tools/make_counselor_sheet.py
 
 Upload it to Google Drive and open it with Google Sheets (dropdowns, the date picker and the
-row colors carry over). The "Students" tab is the one the slideshow reads; its header row
-must stay exactly as written here.
+row colors carry over). The slideshow reads the "Students" tab (its header row must stay
+exactly as written here) and the "Scholarship total" tab. The "Scholarships" tab holds the
+amounts per student and must never be published.
 """
 import json
 from datetime import date
@@ -18,12 +19,12 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "sheet" / "College Acceptances.xlsx"
-ROWS = 1000   # rows prepared with dropdowns and colors
+ROWS = 2000   # rows prepared with dropdowns and colors (a whole class, several colleges each)
 
 CRIMSON, CHARCOAL, MUTED = "9D2235", "3D4047", "6B6E75"
 PINK, YELLOW, RED_SOFT, GREY = "FBE9EC", "FFF2B3", "F8D7DA", "F3F3F4"
 FONT = "Arial"
-HEADERS = ["Rotation start", "Student name", "College", "City", "State", "Status", "Scholarship", "Photo"]
+HEADERS = ["Rotation start", "Student name", "College", "City", "State", "Status", "Photo"]
 STATES = ("AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH "
           "NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY PR").split()
 
@@ -95,13 +96,12 @@ def students_tab(wb, n_colleges):
         ws[col].fill = fill("9A9CA1")
     ws.row_dimensions[1].height = 26
     ws.freeze_panes = "A2"
-    for col, width in zip("ABCDEFGH", (16, 30, 48, 18, 9, 15, 16, 40)):
+    for col, width in zip("ABCDEFG", (16, 30, 48, 18, 9, 15, 40)):
         ws.column_dimensions[col].width = width
     last = n_colleges + 1
     for r in range(2, ROWS + 1):
         ws.cell(row=r, column=1).number_format = "m/d/yyyy"
-        ws.cell(row=r, column=7).number_format = '"$"#,##0'
-        for c in range(1, 9):
+        for c in range(1, 8):
             ws.cell(row=r, column=c).font = f(size=11)
         # City and State fill in from the College list as soon as a college is picked.
         # Typing over them (for a college that isn't listed) just replaces the formula.
@@ -131,21 +131,15 @@ def students_tab(wb, n_colleges):
                             promptTitle="Status", prompt="Accepted = got in. Committed = the student chose this "
                                                          "college. Blank counts as Accepted.",
                             errorTitle="Choose from the list", error="Pick Accepted or Committed.")
-    money = DataValidation(type="decimal", operator="greaterThanOrEqual", formula1="0", allow_blank=True,
-                           errorStyle="warning", showInputMessage=True, showErrorMessage=True,
-                           promptTitle="Scholarship",
-                           prompt="Scholarship money this college offered (from SCOIR), e.g. 40000. Blank if none. "
-                                  "Enter it the same way every time (e.g. the 4-year total).",
-                           errorTitle="Not an amount", error="Type a dollar amount like 40000.")
     photo = DataValidation(type="custom", formula1="TRUE", allow_blank=True, showInputMessage=True,
                            promptTitle="Photo",
                            prompt="Optional. The student's yearbook photo: in Google Drive, Share it as 'Anyone with "
                                   "the link', then Copy link and paste it here.")
-    for dv, col in ((dates, "A"), (colleges, "C"), (status, "F"), (money, "G"), (photo, "H")):
+    for dv, col in ((dates, "A"), (colleges, "C"), (status, "F"), (photo, "G")):
         ws.add_data_validation(dv)
         dv.add(rng(col))
 
-    whole = f"A2:H{ROWS}"
+    whole = f"A2:G{ROWS}"
     # Same student + same college twice: probably typed twice.
     ws.conditional_formatting.add(whole, FormulaRule(
         formula=[f'AND($B2<>"",$C2<>"",COUNTIFS($B$2:$B${ROWS},$B2,$C$2:$C${ROWS},$C2)>1)'],
@@ -154,8 +148,62 @@ def students_tab(wb, n_colleges):
     ws.conditional_formatting.add(f"C2:C{ROWS}", FormulaRule(formula=['AND($B2<>"",$C2="")'], fill=fill(RED_SOFT)))
     # College typed but not found in the list (City stayed empty): probably a typo.
     ws.conditional_formatting.add(f"C2:E{ROWS}", FormulaRule(formula=['AND(TRIM($C2)<>"",$D2="")'], fill=fill(RED_SOFT)))
-    ws.conditional_formatting.add(whole, FormulaRule(formula=['$F2="Committed"'], fill=fill(PINK)))
+    # Not the Photo column, so the photo script's light blue "no photo yet" color shows.
+    ws.conditional_formatting.add(f"A2:F{ROWS}", FormulaRule(formula=['$F2="Committed"'], fill=fill(PINK)))
     return ws
+
+
+def scholarships_tab(wb):
+    """Private: amounts per student. Not published, so only the total below is public."""
+    ws = wb.create_sheet("Scholarships")
+    ws.sheet_properties.tabColor = "C9A227"
+    header_row(ws, 1, ["Student name", "College", "Amount", "Notes"])
+    ws.row_dimensions[1].height = 26
+    ws.freeze_panes = "A2"
+    for col, width in zip("ABCD", (30, 48, 16, 40)):
+        ws.column_dimensions[col].width = width
+    for r in range(2, ROWS + 1):
+        for c in range(1, 5):
+            ws.cell(row=r, column=c).font = f(size=11)
+        ws.cell(row=r, column=3).number_format = '"$"#,##0'
+    note = ws.cell(row=1, column=6, value="PRIVATE. This tab is not published: only the sum on the "
+                                          "\"Scholarship total\" tab shows on the TV.")
+    note.font = f(size=10, bold=True, color=CRIMSON)
+
+    rng = lambda col: f"{col}2:{col}{ROWS}"
+    student = DataValidation(type="list", formula1="StudentNames", allow_blank=True, errorStyle="warning",
+                             showInputMessage=True, showErrorMessage=True, promptTitle="Student name",
+                             prompt="Pick the student from the list (names from the Students tab).",
+                             errorTitle="Not on the Students tab", error="Check the spelling against the Students tab.")
+    college = DataValidation(type="list", formula1="CollegeNames", allow_blank=True, errorStyle="warning",
+                             showInputMessage=True, showErrorMessage=True, promptTitle="College",
+                             prompt="The college that offered the scholarship.",
+                             errorTitle="Not in the college list", error="Check the spelling, or pick it from the list.")
+    money = DataValidation(type="decimal", operator="greaterThanOrEqual", formula1="0", allow_blank=True,
+                           errorStyle="warning", showInputMessage=True, showErrorMessage=True,
+                           promptTitle="Amount",
+                           prompt="Scholarship money this college offered (from SCOIR), e.g. 40000. "
+                                  "Enter it the same way every time (e.g. the 4-year total).",
+                           errorTitle="Not an amount", error="Type a dollar amount like 40000.")
+    for dv, col in ((student, "A"), (college, "B"), (money, "C")):
+        ws.add_data_validation(dv)
+        dv.add(rng(col))
+    # Same student + same college twice: probably counted twice.
+    ws.conditional_formatting.add(f"A2:D{ROWS}", FormulaRule(
+        formula=[f'AND($A2<>"",$B2<>"",COUNTIFS($A$2:$A${ROWS},$A2,$B$2:$B${ROWS},$B2)>1)'], fill=fill(YELLOW)))
+
+
+def total_tab(wb):
+    """Public: just the sum, published next to the Students tab for the finale."""
+    ws = wb.create_sheet("Scholarship total")
+    ws.sheet_properties.tabColor = "9A9CA1"
+    header_row(ws, 1, ["Scholarship total"])
+    ws.column_dimensions["A"].width = 22
+    c = ws.cell(row=2, column=1, value=f"=SUM(Scholarships!C2:C{ROWS})")
+    c.number_format = '"$"#,##0'
+    c.font = f(size=14, bold=True, color=CRIMSON)
+    ws.cell(row=1, column=3, value="Adds up the Scholarships tab by itself; no need to edit. This tab is published "
+                                   "so the TV can show the total (and only the total).").font = f(size=10, italic=True, color=MUTED)
 
 
 def help_tab(wb):
@@ -183,7 +231,8 @@ def help_tab(wb):
         row += n
 
     put("College Acceptances: how to use this sheet", size=18, bold=True, color=CRIMSON, height=30)
-    put("Everything on the Students tab plays on the lobby TV map. Only edit the Students tab.", color=MUTED)
+    put("Everything on the Students tab plays on the lobby TV map. Scholarship money goes on the Scholarships "
+        "tab, which stays private.", color=MUTED, height=30)
     gap()
 
     put("Adding students", size=13, bold=True, color=CRIMSON, height=20)
@@ -194,8 +243,7 @@ def help_tab(wb):
         "3. Student name: exactly as it should appear on screen.",
         "4. College: start typing and pick it from the dropdown.",
         "5. Status: Accepted or Committed.",
-        "6. Scholarship (optional): the money that college offered, from SCOIR. The finale adds them all up.",
-        "7. Photo (optional): a Google Drive link to the student's yearbook photo (Share > Anyone with the link). "
+        "6. Photo (optional): a Google Drive link to the student's yearbook photo (Share > Anyone with the link). "
         "Without one, the card shows the student's initials.",
         "That's it. City and State fill in by themselves (in grey) once you pick the college.",
     ]
@@ -207,9 +255,9 @@ def help_tab(wb):
     header_row(ws, row, HEADERS, col=2)
     row += 1
     example = [
-        (date(2026, 11, 17), "Jordan Smith", "Emory University", "Atlanta", "GA", "Committed", 80000, "(Drive link)"),
-        (None, "Jordan Smith", "University of Georgia", "Athens", "GA", "Accepted", 20000, "(Drive link)"),
-        (None, "Taylor Brown", "Savannah College of Art and Design", "Savannah", "GA", "Accepted", None, None),
+        (date(2026, 11, 17), "Jordan Smith", "Emory University", "Atlanta", "GA", "Committed", "(Drive link)"),
+        (None, "Jordan Smith", "University of Georgia", "Athens", "GA", "Accepted", "(Drive link)"),
+        (None, "Taylor Brown", "Savannah College of Art and Design", "Savannah", "GA", "Accepted", None),
     ]
     for values in example:
         for i, v in enumerate(values):
@@ -219,8 +267,6 @@ def help_tab(wb):
             c.border = Border(bottom=thin)
             if i == 0:
                 c.number_format = "m/d/yyyy"
-            if i == 6:
-                c.number_format = '"$"#,##0'
         row += 1
     put("Only the first row of the group has a date. Jordan has one row per college; the finale counts "
         "Jordan once.", color=MUTED, italic=True, height=30)
@@ -228,8 +274,9 @@ def help_tab(wb):
 
     put("Good to know", size=13, bold=True, color=CRIMSON, height=20)
     tips = [
-        ("Scholarships", "Put each college's offer on that college's row. Every offer counts toward the total "
-                         "on the TV, including colleges the student didn't choose. Leave it blank if there's none."),
+        ("Scholarships", "On the Scholarships tab: one row per offer (student, college, amount from SCOIR). That tab "
+                         "is private; the TV shows only the year's total. Every offer counts, including colleges the "
+                         "student didn't choose. Never put amounts on the Students tab: it's public."),
         ("Photos", "If the photo script is set up (Slideshow menu at the top), just drop each photo into the "
                    "photo folder named after the student, like Jane Doe.jpg; links fill in within the hour. "
                    "Light blue Photo cell = no photo found yet. Photos show on the public slideshow page, so only "
@@ -276,9 +323,10 @@ def help_tab(wb):
     put("One-time setup (whoever runs the slideshow)", size=13, bold=True, color=CRIMSON, height=20)
     for s in [
         "1. Upload this file to Google Drive, open it, and choose File > Save as Google Sheets.",
-        "2. File > Share > Publish to web: pick the Students tab and Comma-separated values (.csv), then Publish.",
-        "3. Copy the link and paste it as data.csvUrl in js/config.js (to try it first, open the slideshow "
-        "with ?csv= and the link added to the end).",
+        "2. File > Share > Publish to web > Published content & settings: tick ONLY Students and Scholarship total "
+        "(never Entire document, which would publish the private Scholarships tab), then Publish.",
+        "3. In the same window, pick Students and Comma-separated values (.csv), copy the link and paste it as "
+        "data.csvUrl in js/config.js. Then pick Scholarship total, copy that link and paste it as data.totalsCsvUrl.",
         "4. Share the Google Sheet (Editor) with the college counselors.",
     ]:
         put(s, height=30 if len(s) > 95 else None)
@@ -304,9 +352,12 @@ def main():
     wb = Workbook()
     wb._named_styles["Normal"].font = Font(name=FONT, size=11)
     students_tab(wb, len(rows))
+    scholarships_tab(wb)
+    total_tab(wb)
     help_tab(wb)
     colleges_tab(wb, rows)
     wb.defined_names["CollegeNames"] = DefinedName("CollegeNames", attr_text=f"'College list'!$A$2:$A${len(rows) + 1}")
+    wb.defined_names["StudentNames"] = DefinedName("StudentNames", attr_text=f"Students!$B$2:$B${ROWS}")
     OUT.parent.mkdir(exist_ok=True)
     wb.save(OUT)
     print(f"Wrote {OUT.relative_to(ROOT)} ({len(rows)} colleges in the dropdown)")

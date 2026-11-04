@@ -1,12 +1,12 @@
-Rotation start,Student name,College,City,State,Status,Scholarship
-10/20/2026,Ella Thompson,Vanderbilt University,Nashville,TN,Committed,"$48,000"
-10/20/2026,Noah Carter,Auburn University,Auburn,AL,Accepted,
-11/3/2026,Avery Johnson,Georgia Tech,Atlanta,GA,Committed,"$20,000"
-11/3/2026,Marcus Lee,University of Michigan,Ann Arbor,MI,Accepted,"$60,000"
-11/3/2026,Sofia Ramirez,University of Michigan,Ann Arbor,MI,Committed,"$80,000"
-11/3/2026,Jordan Williams-Okafor,Emory University,Atlanta,GA,Accepted,
-11/3/2026,Priya Patel,Stanford University,Stanford,CA,Committed,"$120,000"
-11/3/2026,Marcus Lee,Duke University,Durham,NC,Accepted,"$40,000"
-11/17/2026,Liam Brooks,Spelman College,Atlanta,GA,Accepted,
-,Maya Chen,Hogwarts School of Witchcraft,Hogsmeade,ME,,
-,Ethan Okoye,McGill University,Montreal,QC,Committed,
+Rotation start,Student name,College,City,State,Status
+10/20/2026,Ella Thompson,Vanderbilt University,Nashville,TN,Committed
+10/20/2026,Noah Carter,Auburn University,Auburn,AL,Accepted
+11/3/2026,Avery Johnson,Georgia Tech,Atlanta,GA,Committed
+11/3/2026,Marcus Lee,University of Michigan,Ann Arbor,MI,Accepted
+11/3/2026,Sofia Ramirez,University of Michigan,Ann Arbor,MI,Committed
+11/3/2026,Jordan Williams-Okafor,Emory University,Atlanta,GA,Accepted
+11/3/2026,Priya Patel,Stanford University,Stanford,CA,Committed
+11/3/2026,Marcus Lee,Duke University,Durham,NC,Accepted
+11/17/2026,Liam Brooks,Spelman College,Atlanta,GA,Accepted
+,Maya Chen,Hogwarts School of Witchcraft,Hogsmeade,ME,
+,Ethan Okoye,McGill University,Montreal,QC,Committed

@@ -1,6 +1,6 @@
-// Finale totals panel: students, colleges and states, plus commitments, acceptances and the
-// scholarship money offered (hidden when the sheet has none), for the current rotation
-// ("batch") or every rotation so far ("season"), set by CONFIG.totals.scope.
+// Finale totals panel: students, colleges and states, plus commitments and acceptances, for
+// the current rotation ("batch") or every rotation so far ("season"), set by
+// CONFIG.totals.scope. Next to them, the year's scholarship total from the sheet, if any.
 const Finale = (() => {
   let panel;
   const SLIDE_MS = 600, COUNT_MS = 1100;   // keep SLIDE_MS in sync with .totals in style.css
@@ -43,14 +43,13 @@ const Finale = (() => {
       states: new Set(shown.map(r => r.collegeState).filter(Boolean)).size,
       committed: shown.filter(r => r.status === "committed").length,
       accepted: shown.filter(r => r.status !== "committed").length,
-      // Every offer counts, including colleges the student turned down.
-      scholarships: d3.sum(shown, r => r.scholarship || 0),
     };
   }
 
   function show(data) {
     const scope = CONFIG.totals.scope === "season" ? "season" : "batch";
-    const { scholarships: money, ...counts } = totals(scope === "season" ? data.season : data.batch);
+    const counts = totals(scope === "season" ? data.season : data.batch);
+    const money = data.scholarships || 0;
     panel.select(".money").classed("hidden", !money);
     panel.select(".money-label").text(CONFIG.totals.scholarshipLabel);
     panel.select(".money-num").text(dollars(0));

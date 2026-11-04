@@ -19,27 +19,36 @@ sheet for counselors with dropdowns, a date picker, row colors and a "How to use
 Google Drive, open it, choose File > Save as Google Sheets, then follow step 2 below with its
 **Students** tab. (Rebuild it with `python3 tools/make_counselor_sheet.py`.)
 
-1. Columns, in this order: `Rotation start | Student name | College | City | State | Status | Scholarship | Photo`.
+1. Students tab columns, in this order: `Rotation start | Student name | College | City | State | Status | Photo`.
    A blank "Rotation start" means "same as the row above".
    City and State are optional: they're filled in from the college list (needed only for colleges
    that aren't in it).
    Status is `Accepted` or `Committed` (blank counts as Accepted). Committed students get a solid
    crimson tag and a solid pin; accepted ones get an outlined tag and a ring pin. A student can
    have several Accepted rows (one per college); the finale counts each student once.
-   Scholarship is optional: the money that college offered (`40000`, `$40,000` or `40k`). The finale
-   adds up every row's amount ("$X in scholarships offered") and hides that line when it's all blank.
    Photo is optional: the student's yearbook photo for the card. Paste a Google Drive link (share
    the photo as "Anyone with the link"), or put the file in `assets/photos/` and type its file name.
    Students without a photo show their initials. Turn the spot off with `card.photos` in [js/config.js](js/config.js).
    To fill in Photo automatically, see "Match photos automatically" below.
-2. **File → Share → Publish to web**, pick the sheet, format **CSV**, Publish, and copy the link.
-3. Paste it as `data.csvUrl` in [js/config.js](js/config.js).
+2. **File → Share → Publish to web → Published content & settings**: tick **only Students** and
+   **Scholarship total**. Never "Entire document": that would publish the private Scholarships tab.
+3. In the same window, pick **Students** and **Comma-separated values (.csv)**, copy the link and paste it
+   as `data.csvUrl` in [js/config.js](js/config.js). Then pick **Scholarship total**, copy that link and
+   paste it as `data.totalsCsvUrl`.
    To try a sheet before switching, open the slideshow with `?csv=` plus the link at the end of the URL.
 
 The page plays only rows from the latest rotation date on or before today, and reloads itself
 when the date changes. Rows play in sheet order, moved only as much as needed so a Georgia
 college never plays first and two students at the same college never play back to back
 (`order` in [js/config.js](js/config.js)). If the sheet can't be reached, it plays the last copy that loaded.
+
+## Scholarship total
+Scholarship money goes on the sheet's **Scholarships** tab, one row per offer (student, college, amount
+from SCOIR, e.g. `40000`). That tab is **not published**, so nobody sees who got what. The **Scholarship total**
+tab adds it up (`Scholarship total` in A1, `=SUM(Scholarships!C2:C)` in A2), and only that tab is published.
+The finale shows "$X in scholarships offered this year" next to the commitments, whatever `totals.scope`
+is set to, and hides it when the total is blank or `data.totalsCsvUrl` is empty. The `?debug=1` panel shows
+the total it read. Never put amounts on the Students tab: it's public (the debug panel flags it if you do).
 
 ## Match photos automatically
 [sheet/match-photos.gs](sheet/match-photos.gs) is a small script that lives in the Google Sheet. About once an
