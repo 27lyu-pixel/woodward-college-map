@@ -123,7 +123,9 @@ html, body {
 .cat.accepted .cat-pin { border: 5px solid var(--wa-charcoal); background: var(--wa-white); }
 
 /* Student card */
-.ui { pointer-events: none; overflow: visible; }
+/* HTML layer over the map, sized like the stage and scaled by js/ui.js */
+#ui { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0;
+      pointer-events: none; z-index: 1; }
 .card {
   position: absolute;
   bottom: 64px;
@@ -198,7 +200,7 @@ html, body {
 
 /* Debug panel (?debug=1 or press D) */
 .debug-panel {
-  position: fixed; top: 16px; right: 16px; max-width: min(900px, calc(100vw - 32px));
+  position: fixed; top: 16px; right: 16px; z-index: 10; max-width: min(900px, calc(100vw - 32px));
   max-height: calc(100vh - 32px); overflow: auto;
   background: rgba(255, 255, 255, 0.97); color: #222; border-radius: 10px;
   padding: 16px 20px; font: 14px/1.4 var(--font); cursor: auto;

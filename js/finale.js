@@ -11,9 +11,7 @@ const Finale = (() => {
   };
 
   function init(svgEl) {
-    const fo = d3.select(svgEl).append("foreignObject").attr("class", "ui")
-      .attr("width", 1920).attr("height", 1080);
-    panel = fo.append("xhtml:div").attr("class", "totals").html(`
+    panel = UI.layer().append("div").attr("class", "totals").html(`
       <div class="totals-title"></div>
       <div class="totals-stats">
         ${Object.keys(LABELS).map(k => `

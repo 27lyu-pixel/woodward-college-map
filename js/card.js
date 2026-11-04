@@ -1,15 +1,13 @@
 // Student card: slides in from the side of the screen away from the college,
-// so it never covers the pin Eddy just landed on. HTML inside the SVG stage
-// (foreignObject), so it scales with the TV and long names can wrap.
+// so it never covers the pin Eddy just landed on. HTML in the stage-sized UI layer
+// (js/ui.js), so it scales with the TV and long names can wrap.
 const Card = (() => {
   let card;
   const SLIDE_IN_MS = 650, SLIDE_OUT_MS = 450;   // keep in sync with .card transitions in style.css
   const logos = new Map();   // college -> Promise<url | null>
 
   function init(svgEl) {
-    const fo = d3.select(svgEl).append("foreignObject").attr("class", "ui")
-      .attr("width", 1920).attr("height", 1080);
-    card = fo.append("xhtml:div").attr("class", "card left").html(`
+    card = UI.layer().append("div").attr("class", "card left").html(`
       <div class="card-bar"></div>
       <div class="card-body">
         <div class="card-tag"></div>
