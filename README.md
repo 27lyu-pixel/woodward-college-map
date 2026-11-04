@@ -3,7 +3,12 @@
 Looping lobby-TV slideshow: Eddy the Eagle flies from Woodward Academy to each senior's college.
 Full requirements are in [SPEC.md](SPEC.md).
 
+**Live:** https://27lyu-pixel.github.io/woodward-college-map/ (GitHub Pages, from the `main` branch).
+Students come from the counselors' Google Sheet, so adding students needs no change here.
+
 ## Publish on GitHub Pages
+Already set up. To change the code or artwork, push to `main`; the site updates within a minute or two.
+To set it up again elsewhere:
 1. Create a GitHub repository and upload everything in this folder.
 2. Repository **Settings → Pages → Build and deployment**: Source "Deploy from a branch", branch `main`, folder `/ (root)`.
 3. The slideshow is live at `https://<your-user>.github.io/<repo>/` within a minute or two.
