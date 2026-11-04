@@ -1,0 +1,69 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Pick Eddy's art</title>
+<!-- Side-by-side check of both Eddy artworks: python3 serve.py, then open /tools/eddy-sheet.html -->
+<style>
+  :root { --crimson: #9d2235; --land: #b2273c; --ink: #fff; }
+  body { margin: 0; background: var(--crimson); color: var(--ink); font: 16px/1.4 Montserrat, system-ui, sans-serif; }
+  main { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 24px; padding: 24px; }
+  section { background: var(--land); border-radius: 14px; padding: 18px 20px 22px; }
+  h2 { margin: 0 0 4px; font-size: 22px; }
+  p { margin: 0 0 14px; opacity: .85; font-size: 14px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sprite { position: relative; width: 240px; height: 200px; background: rgba(0,0,0,.12); border-radius: 10px; }
+  .sprite.west { transform: scaleX(-1); }
+  .sprite img { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .sprite .wa { inset: auto; height: auto; }
+  .label { font-size: 12px; opacity: .8; margin-top: 4px; }
+  a.btn { display: inline-block; margin-top: 16px; padding: 10px 16px; border-radius: 8px; background: #fff;
+          color: var(--crimson); font-weight: 700; text-decoration: none; }
+</style>
+<main id="main"></main>
+<script src="../js/config.js"></script>
+<script>
+  // One column per artwork: flapping (east and west), each frame, and the perched pose.
+  const e = CONFIG.eddy, W = 240, H = 200;
+  const names = { drawn: "Drawn (code)", higgsfield: "Higgsfield" };
+  const frameName = src => src.split("/").pop().replace(/\.\w+$/, "");
+
+  function sprite(art, src, west) {
+    const d = document.createElement("div");
+    d.className = "sprite" + (west ? " west" : "");
+    d.innerHTML = `<img src="../${src}"><img class="wa" src="../${e.badge.src}">`;
+    setFrame(d, art, src, west);
+    return d;
+  }
+  function setFrame(d, art, src, west) {
+    const [main, wa] = d.querySelectorAll("img");
+    main.src = "../" + src;
+    const spot = e.arts[art].badgeSpots[frameName(src)];
+    wa.style.display = spot ? "" : "none";
+    if (!spot) return;
+    const [fx, fy, fw, rot] = spot, w = fw * W, h = w * e.badge.aspect;
+    // Mirrored back when the sprite faces west, like js/eddy.js does.
+    Object.assign(wa.style, { left: `${fx * W - w / 2}px`, top: `${fy * H - h / 2}px`, width: `${w}px`,
+      transform: `scaleX(${west ? -1 : 1}) rotate(${west ? -rot : rot}deg)` });
+  }
+
+  for (const art of Object.keys(e.arts)) {
+    const a = e.arts[art], s = document.createElement("section");
+    s.innerHTML = `<h2>${names[art] || art}</h2><p>Flapping east and west, then each frame.</p>`;
+    const live = document.createElement("div"); live.className = "row";
+    const east = sprite(art, a.frames.fly[0], false), west = sprite(art, a.frames.fly[0], true);
+    live.append(east, west); s.append(live);
+    const seq = a.frames.fly.map((_, i) => i).concat(a.frames.fly.slice(1, -1).map((_, i) => a.frames.fly.length - 2 - i));
+    let i = 0;
+    setInterval(() => { const f = a.frames.fly[seq[i++ % seq.length]]; setFrame(east, art, f, false); setFrame(west, art, f, true); }, 1000 / e.flapFps);
+
+    const frames = document.createElement("div"); frames.className = "row"; frames.style.marginTop = "10px";
+    for (const f of [...a.frames.fly, a.frames.perch]) {
+      const wrap = document.createElement("div");
+      wrap.append(sprite(art, f, false));
+      wrap.insertAdjacentHTML("beforeend", `<div class="label">${frameName(f)}</div>`);
+      frames.append(wrap);
+    }
+    s.append(frames);
+    s.insertAdjacentHTML("beforeend", `<a class="btn" href="../?eddy=${art}">Play the slideshow with this Eddy</a>`);
+    document.getElementById("main").append(s);
+  }
+</script>

@@ -1,0 +1,240 @@
+/* Woodward colors, taken from woodward.edu. Adjust here. */
+:root {
+  --wa-crimson: #9d2235;       /* primary brand red */
+  --wa-crimson-light: #b2273c; /* lighter red used on the site's accents */
+  --wa-crimson-deep: #5e1220;  /* darker shade for depth and text halos */
+  --wa-charcoal: #3d4047;      /* logo / body text */
+  --wa-offwhite: #f9f9f9;
+  --wa-white: #ffffff;
+
+  --bg-center: var(--wa-crimson);
+  --bg-edge: var(--wa-crimson-deep);
+  --map-land: var(--wa-crimson-light);
+  --map-land-hi: #cf3d55;          /* destination state while zoomed in */
+  --map-border: rgba(255, 255, 255, 0.6);
+  --map-county: rgba(255, 255, 255, 0.3);
+  --map-label: var(--wa-white);
+  --map-label-muted: rgba(255, 255, 255, 0.8);
+  --pin: var(--wa-white);
+  --pin-eye: var(--wa-crimson);
+  --trail: rgba(255, 255, 255, 0.9);
+  --card-bar-default: var(--wa-charcoal);   /* used when a college has no color */
+  --card-muted: #6b6e75;
+
+  --font: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-edge);
+  cursor: none;
+}
+
+#stage {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(ellipse at center, var(--bg-center) 0%, var(--bg-edge) 100%);
+  font-family: var(--font);
+}
+
+/* Map layers. Strokes keep their screen width at every zoom level. */
+.world path { vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.states path { fill: var(--map-land); stroke: none; }
+/* State Eddy just flew to: lighter, with its name above it */
+.states path { transition: fill 700ms ease; }
+.states path.dest-state { fill: var(--map-land-hi); }
+.state-name { opacity: 0; transition: opacity 600ms ease; }
+.state-name.on { opacity: 1; }
+.overlay .state-name text { fill: var(--wa-white); font-size: 40px; font-weight: 800; letter-spacing: 0.18em; }
+.counties path { fill: none; stroke: var(--map-county); stroke-width: 1; }
+.state-borders { fill: none; stroke: var(--map-border); stroke-width: 1.2; }
+.nation { fill: none; stroke: var(--map-border); stroke-width: 2; }
+
+/* Labels drawn over the map (they do not scale with the zoom). */
+.overlay text {
+  font-family: var(--font);
+  paint-order: stroke;
+  stroke: var(--wa-crimson-deep);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+.place-label { fill: var(--map-label-muted); font-size: 26px; font-weight: 500; }
+.place-label.city { fill: var(--map-label); font-size: 34px; font-weight: 700; }
+.place-dot { fill: var(--map-label-muted); }
+
+/* Eddy and his dotted trail */
+.trail {
+  fill: none;
+  stroke: var(--trail);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 0 18;   /* zero-length dashes + round caps = dots */
+}
+.trail.finale {
+  stroke: var(--wa-white);
+  stroke-width: 9;
+  animation: trail-flow 0.7s linear infinite;
+}
+@keyframes trail-flow { to { stroke-dashoffset: -18; } }
+.eddy image { filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.35)); }
+
+/* College pins (fill is set to the college color when known) */
+.dest-dot { fill: var(--wa-white); stroke: var(--wa-white); stroke-width: 4; }
+.destination.accepted .dest-dot { fill: var(--wa-white); stroke: var(--wa-charcoal); stroke-width: 6; }
+.dest-star { fill: var(--wa-white); }
+.dest-ring { fill: none; stroke: var(--wa-white); stroke-width: 3; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.celebrate .dest-ring { animation: pulse 1.5s ease-out infinite; }
+
+/* Finale totals */
+.totals {
+  position: absolute;
+  left: 50%;
+  bottom: 50px;
+  min-width: 1040px;
+  padding: 26px 60px 30px;
+  background: var(--wa-white);
+  border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  font-family: var(--font);
+  color: var(--wa-charcoal);
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, 150%);
+  transition: transform 600ms cubic-bezier(0.2, 0.9, 0.25, 1), opacity 400ms ease;
+}
+.totals.in { transform: translate(-50%, 0); opacity: 1; }
+.totals-title {
+  font-size: 24px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--card-muted);
+}
+.totals-stats { display: flex; justify-content: space-around; gap: 60px; margin-top: 6px; }
+.stat-num { font-size: 104px; font-weight: 800; line-height: 1; color: var(--wa-crimson); font-variant-numeric: tabular-nums; }
+.stat-label { margin-top: 6px; font-size: 30px; font-weight: 700; }
+/* Commitments / acceptances row; the pin shapes double as the map legend */
+.totals-cats { display: flex; justify-content: center; gap: 64px; margin-top: 22px; padding-top: 18px; border-top: 2px solid #e6e6e8; }
+.cat { display: flex; align-items: center; gap: 12px; font-size: 32px; font-weight: 700; }
+.cat-num { color: var(--wa-crimson); font-weight: 800; font-variant-numeric: tabular-nums; }
+.cat-pin { width: 26px; height: 26px; border-radius: 50%; box-sizing: border-box; }
+.cat.committed .cat-pin { background: var(--wa-crimson); color: var(--wa-white); font-size: 17px; line-height: 26px; text-align: center; }
+.cat.committed .cat-pin::before { content: "★"; }
+.cat.accepted .cat-pin { border: 5px solid var(--wa-charcoal); background: var(--wa-white); }
+
+/* Student card */
+.ui { pointer-events: none; overflow: visible; }
+.card {
+  position: absolute;
+  bottom: 64px;
+  width: 1000px;
+  display: flex;
+  background: var(--wa-white);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.4);
+  font-family: var(--font);
+  color: var(--wa-charcoal);
+  opacity: 0;
+  transition: transform 650ms cubic-bezier(0.2, 0.9, 0.25, 1), opacity 400ms ease;
+}
+.card.left  { left: 64px;  transform: translateX(-120%); }
+.card.right { right: 64px; transform: translateX(120%); }
+.card.in    { transform: none; opacity: 1; transition-duration: 650ms, 400ms; }
+.card:not(.in) { transition-duration: 450ms, 450ms; }
+.card-bar { flex: 0 0 28px; background: var(--card-bar-default); }
+.card-body { flex: 1 1 auto; min-width: 0; padding: 34px 16px 38px 44px; }
+/* College logo (or its initials when no logo is found) on the right of the card */
+.card-logo {
+  flex: 0 0 400px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 22px 30px 22px 0;
+}
+/* Fixed box so small logos (website icons) scale up too; contain keeps their shape. */
+.card-logo img { display: none; width: 340px; height: 280px; object-fit: contain; }
+.card-logo.has-img img { display: block; }
+.card-monogram {
+  display: none;
+  width: 260px; height: 260px; border-radius: 50%;
+  align-items: center; justify-content: center;
+  background: var(--card-bar-default); color: var(--wa-white);
+  font-size: 90px; font-weight: 800; letter-spacing: 0.02em;
+}
+.card-logo.ready:not(.has-img) .card-monogram { display: flex; }
+/* Category tag above the name: Committed = solid crimson with a star, Accepted = outlined */
+.card-tag {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-bottom: 12px; padding: 6px 16px 6px 14px; border-radius: 999px;
+  font-size: 21px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+  border: 3px solid var(--wa-crimson);
+}
+.card[data-status="committed"] .card-tag { background: var(--wa-crimson); color: var(--wa-white); }
+.card[data-status="committed"] .card-tag::before { content: "★"; letter-spacing: 0; }
+.card[data-status="accepted"] .card-tag { background: transparent; color: var(--wa-crimson); }
+.card[data-status="accepted"] .card-tag::before { content: "✓"; letter-spacing: 0; }
+.card-student { font-size: 66px; font-weight: 800; line-height: 1.05; color: var(--wa-crimson); }
+.card-kicker {
+  margin: 14px 0 6px;
+  font-size: 23px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--card-muted);
+}
+.card-college { font-size: 46px; font-weight: 700; line-height: 1.12; }
+.card-place { margin-top: 8px; font-size: 29px; font-weight: 500; color: var(--card-muted); }
+
+/* Title slide */
+.title-bg-center { stop-color: var(--bg-center); }
+.title-bg-edge { stop-color: var(--bg-edge); }
+.title-kicker {
+  fill: rgba(255, 255, 255, 0.85);
+  font-family: var(--font); font-size: 34px; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase; text-anchor: middle;
+}
+.title-rule { stroke: rgba(255, 255, 255, 0.6); stroke-width: 3; stroke-linecap: round; }
+.title-line {
+  fill: var(--wa-white);
+  font-family: var(--font); font-size: 128px; font-weight: 800; text-anchor: middle;
+  letter-spacing: -0.01em;
+}
+
+/* Debug panel (?debug=1 or press D) */
+.debug-panel {
+  position: fixed; top: 16px; right: 16px; max-width: min(900px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px); overflow: auto;
+  background: rgba(255, 255, 255, 0.97); color: #222; border-radius: 10px;
+  padding: 16px 20px; font: 14px/1.4 var(--font); cursor: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+.debug-panel[hidden] { display: none; }
+.debug-panel h2 { margin: 0 0 8px; font-size: 18px; }
+.debug-panel h2 small { font-weight: 500; color: #888; font-size: 12px; margin-left: 8px; }
+.debug-panel h3 { margin: 14px 0 4px; font-size: 15px; }
+.debug-panel table { border-collapse: collapse; width: 100%; }
+.debug-panel th, .debug-panel td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #eee; }
+.debug-panel tr.warn td { background: #fff6d6; }
+.debug-panel tr.bad td { background: #ffe0e0; }
+.debug-panel .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.debug-panel .hint { color: #777; font-size: 12px; }
+.debug-panel ul { margin: 4px 0; padding-left: 20px; }
+
+/* Logo card beside the pin in the close-up */
+.logo-card-bg {
+  fill: var(--wa-white);
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.35));
+}
+
+/* Woodward pin */
+.pin-body { fill: var(--pin); stroke: var(--wa-crimson-deep); stroke-width: 3; }
+.pin-eye { fill: var(--pin-eye); }
+.pin-label { fill: var(--wa-white); font-size: 22px; font-weight: 700; }
+.pin-pulse {
+  fill: none;
+  stroke: var(--pin);
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 1.8s ease-out infinite;
+}
+@keyframes pulse {
+  from { transform: scale(0.4); opacity: 1; }
+  to   { transform: scale(2.2); opacity: 0; }
+}
