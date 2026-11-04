@@ -23,7 +23,7 @@ ROWS = 1000   # rows prepared with dropdowns and colors
 CRIMSON, CHARCOAL, MUTED = "9D2235", "3D4047", "6B6E75"
 PINK, YELLOW, RED_SOFT, GREY = "FBE9EC", "FFF2B3", "F8D7DA", "F3F3F4"
 FONT = "Arial"
-HEADERS = ["Rotation start", "Student name", "College", "City", "State", "Status"]
+HEADERS = ["Rotation start", "Student name", "College", "City", "State", "Status", "Scholarship", "Photo"]
 STATES = ("AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH "
           "NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY PR").split()
 
@@ -95,12 +95,13 @@ def students_tab(wb, n_colleges):
         ws[col].fill = fill("9A9CA1")
     ws.row_dimensions[1].height = 26
     ws.freeze_panes = "A2"
-    for col, width in zip("ABCDEF", (16, 30, 48, 18, 9, 15)):
+    for col, width in zip("ABCDEFGH", (16, 30, 48, 18, 9, 15, 16, 40)):
         ws.column_dimensions[col].width = width
     last = n_colleges + 1
     for r in range(2, ROWS + 1):
         ws.cell(row=r, column=1).number_format = "m/d/yyyy"
-        for c in range(1, 7):
+        ws.cell(row=r, column=7).number_format = '"$"#,##0'
+        for c in range(1, 9):
             ws.cell(row=r, column=c).font = f(size=11)
         # City and State fill in from the College list as soon as a college is picked.
         # Typing over them (for a college that isn't listed) just replaces the formula.
@@ -130,11 +131,21 @@ def students_tab(wb, n_colleges):
                             promptTitle="Status", prompt="Accepted = got in. Committed = the student chose this "
                                                          "college. Blank counts as Accepted.",
                             errorTitle="Choose from the list", error="Pick Accepted or Committed.")
-    for dv, col in ((dates, "A"), (colleges, "C"), (status, "F")):
+    money = DataValidation(type="decimal", operator="greaterThanOrEqual", formula1="0", allow_blank=True,
+                           errorStyle="warning", showInputMessage=True, showErrorMessage=True,
+                           promptTitle="Scholarship",
+                           prompt="Scholarship money this college offered (from SCOIR), e.g. 40000. Blank if none. "
+                                  "Enter it the same way every time (e.g. the 4-year total).",
+                           errorTitle="Not an amount", error="Type a dollar amount like 40000.")
+    photo = DataValidation(type="custom", formula1="TRUE", allow_blank=True, showInputMessage=True,
+                           promptTitle="Photo",
+                           prompt="Optional. The student's yearbook photo: in Google Drive, Share it as 'Anyone with "
+                                  "the link', then Copy link and paste it here.")
+    for dv, col in ((dates, "A"), (colleges, "C"), (status, "F"), (money, "G"), (photo, "H")):
         ws.add_data_validation(dv)
         dv.add(rng(col))
 
-    whole = f"A2:F{ROWS}"
+    whole = f"A2:H{ROWS}"
     # Same student + same college twice: probably typed twice.
     ws.conditional_formatting.add(whole, FormulaRule(
         formula=[f'AND($B2<>"",$C2<>"",COUNTIFS($B$2:$B${ROWS},$B2,$C$2:$C${ROWS},$C2)>1)'],
@@ -152,7 +163,7 @@ def help_tab(wb):
     ws.sheet_properties.tabColor = CHARCOAL
     ws.sheet_view.showGridLines = False
     ws.column_dimensions["A"].width = 3
-    for col, width in zip("BCDEFG", (24, 26, 34, 14, 8, 13)):
+    for col, width in zip("BCDEFGHI", (24, 26, 34, 14, 8, 13, 13, 14)):
         ws.column_dimensions[col].width = width
     row = 2
 
@@ -183,6 +194,9 @@ def help_tab(wb):
         "3. Student name: exactly as it should appear on screen.",
         "4. College: start typing and pick it from the dropdown.",
         "5. Status: Accepted or Committed.",
+        "6. Scholarship (optional): the money that college offered, from SCOIR. The finale adds them all up.",
+        "7. Photo (optional): a Google Drive link to the student's yearbook photo (Share > Anyone with the link). "
+        "Without one, the card shows the student's initials.",
         "That's it. City and State fill in by themselves (in grey) once you pick the college.",
     ]
     for s in steps:
@@ -193,9 +207,9 @@ def help_tab(wb):
     header_row(ws, row, HEADERS, col=2)
     row += 1
     example = [
-        (date(2026, 11, 17), "Jordan Smith", "Emory University", "Atlanta", "GA", "Committed"),
-        (None, "Jordan Smith", "University of Georgia", "Athens", "GA", "Accepted"),
-        (None, "Taylor Brown", "Savannah College of Art and Design", "Savannah", "GA", "Accepted"),
+        (date(2026, 11, 17), "Jordan Smith", "Emory University", "Atlanta", "GA", "Committed", 80000, "(Drive link)"),
+        (None, "Jordan Smith", "University of Georgia", "Athens", "GA", "Accepted", 20000, "(Drive link)"),
+        (None, "Taylor Brown", "Savannah College of Art and Design", "Savannah", "GA", "Accepted", None, None),
     ]
     for values in example:
         for i, v in enumerate(values):
@@ -205,6 +219,8 @@ def help_tab(wb):
             c.border = Border(bottom=thin)
             if i == 0:
                 c.number_format = "m/d/yyyy"
+            if i == 6:
+                c.number_format = '"$"#,##0'
         row += 1
     put("Only the first row of the group has a date. Jordan has one row per college; the finale counts "
         "Jordan once.", color=MUTED, italic=True, height=30)
@@ -212,6 +228,12 @@ def help_tab(wb):
 
     put("Good to know", size=13, bold=True, color=CRIMSON, height=20)
     tips = [
+        ("Scholarships", "Put each college's offer on that college's row. Every offer counts toward the total "
+                         "on the TV, including colleges the student didn't choose. Leave it blank if there's none."),
+        ("Photos", "If the photo script is set up (Slideshow menu at the top), just drop each photo into the "
+                   "photo folder named after the student, like Jane Doe.jpg; links fill in within the hour. "
+                   "Light blue Photo cell = no photo found yet. Photos show on the public slideshow page, so only "
+                   "add ones the student is happy to share."),
         ("Accepted vs. Committed", "Add a row for each college a student gets into (Accepted). When they decide, "
                                    "change that row's Status to Committed. Blank counts as Accepted."),
         ("College not in the list?", "Type its full name, then type over City and State. A small warning on the "
@@ -231,7 +253,7 @@ def help_tab(wb):
         b.font = f(size=11, color=CHARCOAL)
         b.alignment = Alignment(wrap_text=True, vertical="top")
         ws.merge_cells(start_row=row, start_column=3, end_row=row, end_column=7)
-        ws.row_dimensions[row].height = 44
+        ws.row_dimensions[row].height = 44 if len(text) < 170 else 74
         row += 1
     gap()
 

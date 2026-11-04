@@ -1,6 +1,6 @@
-// Finale totals panel: students, colleges and states, plus commitments and acceptances,
-// for the current rotation ("batch") or every rotation so far ("season"), set by
-// CONFIG.totals.scope.
+// Finale totals panel: students, colleges and states, plus commitments, acceptances and the
+// scholarship money offered (hidden when the sheet has none), for the current rotation
+// ("batch") or every rotation so far ("season"), set by CONFIG.totals.scope.
 const Finale = (() => {
   let panel;
   const SLIDE_MS = 600, COUNT_MS = 1100;   // keep SLIDE_MS in sync with .totals in style.css
@@ -25,8 +25,11 @@ const Finale = (() => {
           <div class="cat ${k}" data-key="${k}">
             <span class="cat-pin"></span><span class="cat-num">0</span> <span class="cat-label"></span>
           </div>`).join("")}
+        <div class="cat money"><span class="money-num">$0</span> <span class="money-label"></span></div>
       </div>`);
   }
+
+  const dollars = d3.format("$,.0f");
 
   // Counts only rows that made it onto the map.
   function totals(rows) {
@@ -40,12 +43,17 @@ const Finale = (() => {
       states: new Set(shown.map(r => r.collegeState).filter(Boolean)).size,
       committed: shown.filter(r => r.status === "committed").length,
       accepted: shown.filter(r => r.status !== "committed").length,
+      // Every offer counts, including colleges the student turned down.
+      scholarships: d3.sum(shown, r => r.scholarship || 0),
     };
   }
 
   function show(data) {
     const scope = CONFIG.totals.scope === "season" ? "season" : "batch";
-    const counts = totals(scope === "season" ? data.season : data.batch);
+    const { scholarships: money, ...counts } = totals(scope === "season" ? data.season : data.batch);
+    panel.select(".money").classed("hidden", !money);
+    panel.select(".money-label").text(CONFIG.totals.scholarshipLabel);
+    panel.select(".money-num").text(dollars(0));
     panel.select(".totals-title").text(CONFIG.totals.titles[scope]);
     for (const [key, n] of Object.entries(counts)) {
       const plural = n === 1 ? 0 : 1;
@@ -66,6 +74,7 @@ const Finale = (() => {
         for (const [key, n] of Object.entries(counts)) {
           panel.selectAll(`[data-key="${key}"] .stat-num, [data-key="${key}"] .cat-num`).text(Math.round(n * t));
         }
+        panel.select(".money-num").text(dollars(money * t));
         if (t >= 1) timer.stop();
       });
     }, SLIDE_MS * 0.6);

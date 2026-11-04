@@ -9,6 +9,7 @@ const Card = (() => {
   function init(svgEl) {
     card = UI.layer().append("div").attr("class", "card left").html(`
       <div class="card-bar"></div>
+      <div class="card-photo"><img alt=""><div class="card-photo-initials"></div></div>
       <div class="card-body">
         <div class="card-tag"></div>
         <div class="card-student"></div>
@@ -17,6 +18,28 @@ const Card = (() => {
         <div class="card-place"></div>
       </div>
       <div class="card-logo"><img alt=""><div class="card-monogram"></div></div>`);
+    card.classed("no-photos", !CONFIG.card.photos.enabled);
+  }
+
+  // ---------- student photos ----------
+  // From the sheet's Photo column (see Data.photoUrl). Without one, the spot shows the
+  // student's initials.
+  const photos = new Map();   // url -> Promise<url | null>
+  function photoFor(s) {
+    if (!s.photo || !CONFIG.card.photos.enabled) return Promise.resolve(null);
+    if (!photos.has(s.photo)) photos.set(s.photo, tryImage({ url: s.photo, min: 1 }));
+    return photos.get(s.photo);
+  }
+
+  async function setPhoto(s) {
+    const box = card.select(".card-photo");
+    box.classed("has-img", false);
+    card.select(".card-photo-initials").text(s.student.split(/\s+/).filter(Boolean).map(w => w[0].toUpperCase()).join("").slice(0, 2));
+    const url = await Promise.race([photoFor(s), new Promise(r => setTimeout(() => r(undefined), 1500))]);
+    if (url) {
+      box.select("img").attr("src", url);
+      box.classed("has-img", true);
+    }
   }
 
   // ---------- college logos ----------
@@ -54,8 +77,8 @@ const Card = (() => {
     return logos.get(key);
   }
 
-  // Start fetching every logo up front so they're ready when the cards come up.
-  function preload(students) { students.forEach(logoFor); }
+  // Start fetching every logo and photo up front so they're ready when the cards come up.
+  function preload(students) { students.forEach(s => { logoFor(s); photoFor(s); }); }
 
   // "University of Michigan" -> "UM", "Georgia Tech" -> "GT"
   const initials = name => name.replace(/&/g, " ").split(/[\s\-–,]+/)
@@ -84,7 +107,7 @@ const Card = (() => {
     card.select(".card-college").text(student.college);
     card.select(".card-place").text([student.city, student.state].filter(Boolean).join(", "));
     card.select(".card-bar").style("background", student.color || null);
-    await setLogo(student);
+    await Promise.all([setLogo(student), setPhoto(student)]);
 
     // Jump to the hidden spot on the chosen side without animating, then slide in.
     const node = card.node();

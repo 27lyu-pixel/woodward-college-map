@@ -26,6 +26,10 @@ const CONFIG = {
   },
 
   card: {
+    // Student photo on the left of the card, from the sheet's Photo column: a Google Drive
+    // link (shared "Anyone with the link") or a file name in assets/photos/. Students
+    // without one show their initials there. enabled: false removes the spot.
+    photos: { enabled: true },
     // College logo on each student card. Found automatically (Wikipedia logo or seal, then
     // the college website's icon); pick one by hand with "logo" in data/college-extras.json.
     // Colleges with no logo show their initials in the college color.
@@ -40,6 +44,8 @@ const CONFIG = {
     // Finale totals: "batch" = current rotation only, "season" = every rotation so far.
     scope: "batch",
     titles: { batch: "This rotation", season: "This season so far" },
+    // Under the totals: the sheet's Scholarship column added up (hidden when it's all blank).
+    scholarshipLabel: "in scholarships offered",
   },
 
   woodward: {

@@ -1,7 +1,10 @@
 // Loads the sheet CSV, picks the current rotation, and finds each college on the map.
 //
-// Sheet columns: Rotation start | Student name | College | City | State | Status
+// Sheet columns: Rotation start | Student name | College | City | State | Status | Scholarship | Photo
 // - Status is "Accepted" or "Committed" (blank = CONFIG.categories.default).
+// - Scholarship is optional: money that college offered ("$120,000", "120000", "120k").
+//   The finale adds them all up.
+// - Photo is optional: the student's yearbook photo (Google Drive link or a file in assets/photos/).
 // - City and State are optional: they're filled in from the matched college. They're only
 //   needed to tell apart same-named colleges, or to place a college that isn't in the list.
 // - The current rotation is the latest "Rotation start" on or before today.
@@ -138,7 +141,29 @@ const Data = (() => {
       city: find("city"),
       state: find("state"),
       status: find("status") || find("category") || find("type"),
+      scholarship: find("scholar") || find("aid") || find("award"),
+      photo: find("photo") || find("picture") || find("image"),
     };
+  }
+
+  // Photo cell -> image URL. Google Drive share links become Drive's image link; other web
+  // links are used as is; anything else is a file name in assets/photos/.
+  function photoUrl(text) {
+    const t = (text || "").trim();
+    if (!t) return "";
+    const drive = /drive\.google\.com/.test(t) && t.match(/\/d\/([\w-]{20,})|[?&]id=([\w-]{20,})/);
+    if (drive) return `https://drive.google.com/thumbnail?id=${drive[1] || drive[2]}&sz=w1000`;
+    if (/^https?:\/\//i.test(t)) return t;
+    return "assets/photos/" + t.split("/").map(encodeURIComponent).join("/");
+  }
+
+  // "$120,000", "120000", "$120k", "1.5M", "$30,000/yr" -> dollars; blank/"none" -> 0; else null.
+  function parseMoney(text) {
+    const t = (text || "").replace(/[$,\s]/g, "").toLowerCase();
+    if (!t || /^(none|n\/?a|-+|0+(\.0+)?)$/.test(t)) return 0;
+    const m = t.match(/^(\d+(?:\.\d+)?)(k|m)?/);
+    if (!m) return null;
+    return Math.round(+m[1] * (m[2] === "m" ? 1e6 : m[2] === "k" ? 1e3 : 1));
   }
 
   // "Committed", "commit", "Accepted", "admitted", ... -> "committed" | "accepted" | null
@@ -164,7 +189,7 @@ const Data = (() => {
     const raw = d3.csvParse(text);
     const col = columns(raw.columns);
     for (const [field, header] of Object.entries(col)) {
-      if (!header && field !== "city" && field !== "status") flags.push({ row: null, message: `No "${field}" column found in the sheet.` });
+      if (!header && !["city", "status", "scholarship", "photo"].includes(field)) flags.push({ row: null, message: `No "${field}" column found in the sheet.` });
     }
 
     let lastDate = null;
@@ -183,7 +208,13 @@ const Data = (() => {
         status = CONFIG.categories.default;
         flags.push({ row, message: `Status "${get("status")}" isn't Accepted or Committed; showing it as ${CONFIG.categories[status].label}.` });
       }
-      rows.push({ row, date, student, college, city: get("city"), state: get("state").toUpperCase(), status });
+      let scholarship = parseMoney(get("scholarship"));
+      if (scholarship === null) {
+        scholarship = 0;
+        flags.push({ row, message: `Can't read the scholarship "${get("scholarship")}" (type a dollar amount like 40000); not counted.` });
+      }
+      rows.push({ row, date, student, college, city: get("city"), state: get("state").toUpperCase(), status, scholarship,
+                  photo: photoUrl(get("photo")) });
     });
 
     const now = today();

@@ -121,6 +121,10 @@ html, body {
 .cat.committed .cat-pin { background: var(--wa-crimson); color: var(--wa-white); font-size: 17px; line-height: 26px; text-align: center; }
 .cat.committed .cat-pin::before { content: "★"; }
 .cat.accepted .cat-pin { border: 5px solid var(--wa-charcoal); background: var(--wa-white); }
+/* Scholarship money offered, on the same row so the panel doesn't cover Gulf Coast pins */
+.cat.money { gap: 0.3em; padding-left: 64px; white-space: nowrap; border-left: 2px solid #e6e6e8; }
+.cat.money.hidden { display: none; }
+.money-num { color: var(--wa-crimson); font-weight: 800; font-variant-numeric: tabular-nums; }
 
 /* Student card */
 /* HTML layer over the map, sized like the stage and scaled by js/ui.js */
@@ -129,7 +133,8 @@ html, body {
 .card {
   position: absolute;
   bottom: 64px;
-  width: 1000px;
+  width: 1140px;
+  min-height: 330px;
   display: flex;
   background: var(--wa-white);
   border-radius: 22px;
@@ -145,19 +150,31 @@ html, body {
 .card.in    { transform: none; opacity: 1; transition-duration: 650ms, 400ms; }
 .card:not(.in) { transition-duration: 450ms, 450ms; }
 .card-bar { flex: 0 0 28px; background: var(--card-bar-default); }
-.card-body { flex: 1 1 auto; min-width: 0; padding: 34px 16px 38px 44px; }
+.card-body { flex: 1 1 auto; min-width: 0; padding: 34px 16px 38px 40px; }
+/* Student's yearbook photo: fills the card's height, cropped to the face (portrait shape) */
+.card-photo {
+  flex: 0 0 256px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: #ececee;
+}
+.card-photo img { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+.card-photo.has-img img { display: block; }
+.card-photo.has-img .card-photo-initials { display: none; }
+.card-photo-initials { font-size: 84px; font-weight: 800; color: #c3c5ca; letter-spacing: 0.02em; }
+.card.no-photos .card-photo { display: none; }
+.card.no-photos { width: 1000px; }
 /* College logo (or its initials when no logo is found) on the right of the card */
 .card-logo {
-  flex: 0 0 400px;
+  flex: 0 0 320px;
   display: flex; align-items: center; justify-content: center;
   padding: 22px 30px 22px 0;
 }
 /* Fixed box so small logos (website icons) scale up too; contain keeps their shape. */
-.card-logo img { display: none; width: 340px; height: 280px; object-fit: contain; }
+.card-logo img { display: none; width: 280px; height: 260px; object-fit: contain; }
 .card-logo.has-img img { display: block; }
 .card-monogram {
   display: none;
-  width: 260px; height: 260px; border-radius: 50%;
+  width: 230px; height: 230px; border-radius: 50%;
   align-items: center; justify-content: center;
   background: var(--card-bar-default); color: var(--wa-white);
   font-size: 90px; font-weight: 800; letter-spacing: 0.02em;
