@@ -135,8 +135,8 @@ const CONFIG = {
     titlePerchMs: 2400, // Eddy perched on the title
     homeCircleMs: 2900, // title fades; Eddy circles Woodward once and lands
     zoomMs: 2200,       // College Park -> full US zoom
-    flightMs: 2600,     // one flight between stops
-    hopMs: 1200,        // short hop when two rows in a row share a college
+    flightMs: 1700,     // one flight between stops (also his flight home in the finale)
+    hopMs: 800,         // short hop when two rows in a row share a college
     localZoomMs: 1300,  // zoom into / out of the Atlanta-area view
     stateZoomInMs: 1300,  // zoom into the college's state after landing
     stateZoomOutMs: 1000, // back out to the whole US before the next flight
