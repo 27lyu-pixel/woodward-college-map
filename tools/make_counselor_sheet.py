@@ -166,8 +166,8 @@ def students_tab(wb, n_colleges):
                            formula1=str((date(2024, 12, 31) - date(1899, 12, 30)).days),
                            allow_blank=True, errorStyle="warning", showInputMessage=True, showErrorMessage=True,
                            promptTitle="Rotation start",
-                           prompt="The date this group starts showing on the TV. Fill it in on the FIRST row of "
-                                  "each new group only. Double-click for a calendar.",
+                           prompt="This Friday's date: the day this group starts showing on the TV (it replaces "
+                                  "last week's). FIRST row of each new group only. Double-click for a calendar.",
                            errorTitle="Not a date", error="Type a date like 11/17/2026, or double-click for a calendar.")
     # Google Sheets drops a dropdown that points straight at another tab; a named range survives.
     colleges = DataValidation(type="list", formula1="CollegeNames",
@@ -264,8 +264,8 @@ def help_tab(wb):
     put("Adding students", size=13, bold=True, color=CRIMSON, height=20)
     steps = [
         "1. Go to the Students tab and start on the first empty row.",
-        "2. Rotation start: the date the group goes up on the TV (every two weeks). Fill it in on the first row "
-        "of each new group only; leave it blank on the rows below. Double-click the cell for a calendar.",
+        "2. Rotation start: each Friday, type that Friday's date on the first row of the new group only; leave it "
+        "blank on the rows below. That group replaces last week's on the TV within the hour. Double-click for a calendar.",
         "3. Student name: exactly as it should appear on screen.",
         "4. College: start typing and pick it from the dropdown.",
         "5. Status: Accepted or Committed.",
@@ -315,8 +315,10 @@ def help_tab(wb):
                                    "change that row's Status to Committed. Blank counts as Accepted."),
         ("College not in the list?", "Type its full name, then type over City and State. A small warning on the "
                                      "cell is fine. Colleges outside the US can't be shown (the map is US-only)."),
-        ("When it shows on the TV", "On the Rotation start date. The TV picks up changes the next morning, or right "
-                                    "away if someone presses R on the TV's keyboard."),
+        ("When it shows on the TV", "On the Rotation start date: within about an hour of saving, if that date is "
+                                    "today or earlier. Fixes to rows already showing also appear within the hour. "
+                                    "Each week's group stays up until the next Friday's group replaces it. A future "
+                                    "date waits for that day, so you can enter a group early."),
         ("Order on screen", "Rows play in the order listed, except a Georgia college never goes first and the same "
                             "college never plays twice in a row."),
         ("Please don't", "Rename, move or insert columns, add rows above the headings, or type anything on the TV "

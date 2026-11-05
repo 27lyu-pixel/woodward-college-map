@@ -145,9 +145,11 @@ const CONFIG = {
     finaleHoldMs: 3400, // totals on screen after Eddy lands home (finale = flightMs + this)
   },
 
-  // Reload once the date changes (picks up a new rotation and sheet edits), checked
-  // between loops so it never cuts off a student. Retry sooner if the sheet failed to load.
-  refresh: { retryMinutes: 10 },
+  // Between loops (never mid-student), the page reloads when the date changes or when the
+  // sheet has changed: it checks the sheet every `checkMinutes`, so the group a counselor
+  // enters on a Friday afternoon shows up within the hour (plus ~5 minutes for Google to
+  // republish). Retry after `retryMinutes` if the sheet failed to load.
+  refresh: { checkMinutes: 60, retryMinutes: 10 },
 };
 
 // URL options for testing: ?csv=<link> tries another sheet (e.g. a new sheet's published

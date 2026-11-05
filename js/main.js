@@ -3,6 +3,7 @@
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const t = CONFIG.timing;
 const loadedOn = new Date().toDateString();
+let lastCheck = Date.now();
 let home, data, students;
 
 document.addEventListener("keydown", e => {
@@ -147,8 +148,13 @@ async function loadData() {
   home = MapView.project(CONFIG.woodward.lon, CONFIG.woodward.lat);
 
   for (let first = true; ; first = false) {
-    // New day: reload between loops to pick up the new rotation.
+    // Between loops, so a student is never cut off: reload on a new day (a new rotation may
+    // start), or when the sheet has changed (checked every CONFIG.refresh.checkMinutes).
     if (new Date().toDateString() !== loadedOn) { location.reload(); return; }
+    if (Date.now() - lastCheck >= CONFIG.refresh.checkMinutes * 60000) {
+      lastCheck = Date.now();
+      if (await Data.sheetChanged()) { location.reload(); return; }
+    }
     await playTitle(first);
     await playHomeBase();
     await playStudents();

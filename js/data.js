@@ -28,6 +28,7 @@ const Data = (() => {
     WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming", PR: "Puerto Rico",
   };
   const CACHE_KEY = "wa-slideshow-last-csv";
+  let loadedText = null;   // the sheet as it was when the page loaded
 
   // "The University of Texas at Austin" -> "university of texas at austin"
   const norm = s => (s || "").toLowerCase()
@@ -188,6 +189,7 @@ const Data = (() => {
     ]);
     buildIndex(ipeds, extras);
 
+    loadedText = text;
     const raw = d3.csvParse(text);
     const col = columns(raw.columns);
     for (const [field, header] of Object.entries(col)) {
@@ -308,7 +310,17 @@ const Data = (() => {
     return out;
   }
 
+  // Has the published sheet changed since the page loaded? False if it can't be reached.
+  async function sheetChanged() {
+    try {
+      const res = await fetch(CONFIG.data.csvUrl, { cache: "no-store" });
+      return res.ok && (await res.text()) !== loadedText;
+    } catch (e) {
+      return false;
+    }
+  }
+
   const stateName = abbr => STATES[(abbr || "").toUpperCase()] || null;
 
-  return { load, norm, playOrder, stateName };
+  return { load, norm, playOrder, stateName, sheetChanged };
 })();

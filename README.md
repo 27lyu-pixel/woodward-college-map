@@ -41,8 +41,11 @@ out the scholarship amounts and adding the year's total, and it's the only tab t
    as `data.csvUrl` in [js/config.js](js/config.js).
    To try a sheet before switching, open the slideshow with `?csv=` plus the link at the end of the URL.
 
-The page plays only rows from the latest rotation date on or before today, and reloads itself
-when the date changes. Rows play in sheet order, moved only as much as needed so a Georgia
+Counselors add a new group every Friday, with that Friday's date as its Rotation start. The page plays
+only rows from the latest rotation date on or before today, so each Friday's group replaces the
+previous one (and stays up until the next group starts). Between loops it reloads when the date changes,
+and it checks the sheet every hour (`refresh.checkMinutes`) and reloads if anything changed, so a group
+entered Friday afternoon is on the TV within the hour. Rows play in sheet order, moved only as much as needed so a Georgia
 college never plays first and two students at the same college never play back to back
 (`order` in [js/config.js](js/config.js)). If the sheet can't be reached, it plays the last copy that loaded.
 
