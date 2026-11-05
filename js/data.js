@@ -1,6 +1,9 @@
 // Loads the sheet CSV, picks the current rotation, and finds each college on the map.
 //
-// Sheet columns: Rotation start | Student name | College | City | State | Status | Photo
+// Published columns: Rotation start | Student name | College | City | State | Status | Photo |
+// Scholarship total. The counselors type on a private Students tab that also has each
+// student's Scholarship amount; the sheet's "TV feed" tab copies it without the amounts and
+// adds "Scholarship total" (the sum, in its first row). Only the TV feed tab is published.
 // - Status is "Accepted" or "Committed" (blank = CONFIG.categories.default).
 // - Photo is optional: the student's yearbook photo (Google Drive link or a file in assets/photos/).
 // - City and State are optional: they're filled in from the matched college. They're only
@@ -10,8 +13,6 @@
 // - Rows play in sheet order, except (see CONFIG.order and playOrder below): a Georgia
 //   college never plays first, and two students at the same college never play back to back.
 // Colleges are matched against data/colleges.json (IPEDS) plus data/college-extras.json.
-// The scholarship total comes from a separate published tab (CONFIG.data.totalsCsvUrl) holding
-// only the sum, so each student's amount stays on the sheet's private Scholarships tab.
 // Problems never stop the show: they are collected in `flags` (console + debug panel).
 const Data = (() => {
   const STATES = {
@@ -130,25 +131,6 @@ const Data = (() => {
     }
   }
 
-  // The "Scholarship total" tab: a "Scholarship total" heading with the amount under it.
-  // Returns dollars, or null when it isn't set up or can't be read (the finale hides the line).
-  async function scholarshipTotal(flags) {
-    const url = CONFIG.data.totalsCsvUrl;
-    if (!url) return null;
-    let text;
-    try { text = await fetchCsv(flags, url, CACHE_KEY + "-totals", "the scholarship total"); }
-    catch (err) { flags.push({ row: null, message: err.message }); return null; }
-    const raw = d3.csvParse(text);
-    const header = raw.columns.find(h => norm(h).includes("scholar"));
-    const cell = header ? raw.map(r => (r[header] || "").trim()).find(Boolean) : undefined;
-    const total = parseMoney(cell);
-    if (!header || cell === undefined || total === null) {
-      flags.push({ row: null, message: `The scholarship total tab should have "Scholarship total" in A1 and the amount in A2 (found ${JSON.stringify(text.slice(0, 60))}).` });
-      return null;
-    }
-    return total;
-  }
-
   // Map header names to our fields, tolerating case and extra spaces.
   function columns(headers) {
     const find = (...words) => headers.find(h => words.every(w => norm(h).includes(w)));
@@ -159,7 +141,9 @@ const Data = (() => {
       city: find("city"),
       state: find("state"),
       status: find("status") || find("category") || find("type"),
-      scholarship: find("scholar") || find("aid") || find("award"),   // only to warn: it's public
+      // Amounts per student should never be published; only to warn if they are.
+      scholarship: headers.find(h => /scholar|award/.test(norm(h)) && !norm(h).includes("total")),
+      scholarshipTotal: find("scholar", "total"),
       photo: find("photo") || find("picture") || find("image"),
     };
   }
@@ -197,20 +181,27 @@ const Data = (() => {
 
   async function load() {
     const flags = [];
-    const [text, ipeds, extras, scholarships] = await Promise.all([
+    const [text, ipeds, extras] = await Promise.all([
       fetchCsv(flags),
       d3.json("data/colleges.json"),
       d3.json("data/college-extras.json"),
-      scholarshipTotal(flags),
     ]);
     buildIndex(ipeds, extras);
 
     const raw = d3.csvParse(text);
     const col = columns(raw.columns);
     for (const [field, header] of Object.entries(col)) {
-      if (!header && !["city", "status", "scholarship", "photo"].includes(field)) flags.push({ row: null, message: `No "${field}" column found in the sheet.` });
+      if (!header && !["city", "status", "scholarship", "scholarshipTotal", "photo"].includes(field)) flags.push({ row: null, message: `No "${field}" column found in the sheet.` });
     }
-    if (col.scholarship) flags.push({ row: null, message: `The Students tab has a "${col.scholarship}" column. Everything on that tab is public: move the amounts to the private Scholarships tab.` });
+    if (col.scholarship) flags.push({ row: null, message: `The published sheet has each student's "${col.scholarship}" amount, so anyone with the link can see it. Publish the "TV feed" tab instead of Students.` });
+
+    // The year's scholarship total: the first filled cell of the "Scholarship total" column.
+    let scholarships = null;
+    if (col.scholarshipTotal) {
+      const cell = raw.map(r => (r[col.scholarshipTotal] || "").trim()).find(Boolean);
+      scholarships = parseMoney(cell);
+      if (cell && scholarships === null) flags.push({ row: null, message: `Can't read the scholarship total "${cell}".` });
+    }
 
     let lastDate = null;
     const rows = [];

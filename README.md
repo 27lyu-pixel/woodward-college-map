@@ -16,10 +16,14 @@ To set it up again elsewhere:
 ## Connect the Google Sheet
 **Easiest:** start from [sheet/College Acceptances.xlsx](sheet/College%20Acceptances.xlsx), a ready-made
 sheet for counselors with dropdowns, a date picker, row colors and a "How to use" tab. Upload it to
-Google Drive, open it, choose File > Save as Google Sheets, then follow step 2 below with its
-**Students** tab. (Rebuild it with `python3 tools/make_counselor_sheet.py`.)
+Google Drive, open it, choose File > Save as Google Sheets, then follow step 2 below.
+(Rebuild it with `python3 tools/make_counselor_sheet.py`; add `--rows <published CSV link> --out
+sheet/private/new.xlsx` to start it with the students from an older sheet. `sheet/private/` stays out of git.)
 
-1. Students tab columns, in this order: `Rotation start | Student name | College | City | State | Status | Photo`.
+Counselors type on the **Students** tab, which is private. The **TV feed** tab copies it by formula, leaving
+out the scholarship amounts and adding the year's total, and it's the only tab that's published.
+
+1. Students tab columns, in this order: `Rotation start | Student name | College | City | State | Status | Scholarship | Photo`.
    A blank "Rotation start" means "same as the row above".
    City and State are optional: they're filled in from the college list (needed only for colleges
    that aren't in it).
@@ -30,11 +34,11 @@ Google Drive, open it, choose File > Save as Google Sheets, then follow step 2 b
    the photo as "Anyone with the link"), or put the file in `assets/photos/` and type its file name.
    Students without a photo show their initials. Turn the spot off with `card.photos` in [js/config.js](js/config.js).
    To fill in Photo automatically, see "Match photos automatically" below.
-2. **File → Share → Publish to web → Published content & settings**: tick **only Students** and
-   **Scholarship total**. Never "Entire document": that would publish the private Scholarships tab.
-3. In the same window, pick **Students** and **Comma-separated values (.csv)**, copy the link and paste it
-   as `data.csvUrl` in [js/config.js](js/config.js). Then pick **Scholarship total**, copy that link and
-   paste it as `data.totalsCsvUrl`.
+   Scholarship is optional and private: see "Scholarship total" below.
+2. **File → Share → Publish to web → Published content & settings**: tick **only TV feed**. Never
+   Students or "Entire document": those would publish each student's scholarship amount.
+3. In the same window, pick **TV feed** and **Comma-separated values (.csv)**, copy the link and paste it
+   as `data.csvUrl` in [js/config.js](js/config.js).
    To try a sheet before switching, open the slideshow with `?csv=` plus the link at the end of the URL.
 
 The page plays only rows from the latest rotation date on or before today, and reloads itself
@@ -43,12 +47,13 @@ college never plays first and two students at the same college never play back t
 (`order` in [js/config.js](js/config.js)). If the sheet can't be reached, it plays the last copy that loaded.
 
 ## Scholarship total
-Scholarship money goes on the sheet's **Scholarships** tab, one row per offer (student, college, amount
-from SCOIR, e.g. `40000`). That tab is **not published**, so nobody sees who got what. The **Scholarship total**
-tab adds it up (`Scholarship total` in A1, `=SUM(Scholarships!C2:C)` in A2), and only that tab is published.
+Counselors type each college's offer (from SCOIR, e.g. `40000`) in the **Scholarship** column of that
+college's row on the Students tab. The TV feed tab leaves that column out and adds it up in its
+**Scholarship total** column (`=SUM(Students!G2:G2000)` in H2), so the published sheet has only the sum,
+never who got what. Every offer counts, including colleges the student turned down.
 The finale shows "$X in scholarships offered this year" next to the commitments, whatever `totals.scope`
-is set to, and hides it when the total is blank or `data.totalsCsvUrl` is empty. The `?debug=1` panel shows
-the total it read. Never put amounts on the Students tab: it's public (the debug panel flags it if you do).
+is set to, and hides it when the total is blank or 0. The `?debug=1` panel shows the total it read, and
+warns if the published sheet has per-student amounts (meaning the Students tab was published by mistake).
 
 ## Match photos automatically
 [sheet/match-photos.gs](sheet/match-photos.gs) is a small script that lives in the Google Sheet. About once an

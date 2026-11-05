@@ -1,12 +1,8 @@
 // All the knobs in one place. Colors live in css/style.css.
 const CONFIG = {
   data: {
-    // Google Sheet published as CSV (File > Share > Publish to web > Students tab > CSV).
+    // Google Sheet published as CSV (File > Share > Publish to web > "TV feed" tab > CSV).
     // The counselors' "College Acceptances" sheet. data/sample.csv has made-up test rows.
-    // The scholarship total: the sheet's "Scholarship total" tab, published as CSV the same way
-    // (only the sum is public; the amounts per student stay on the private Scholarships tab).
-    // Leave "" to hide the scholarship line.
-    totalsCsvUrl: "",
     csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRb-_kpbMWLq8QljbgNizmUALYyEn4TXruX4k23VzZt6uLVuh1CMALRnXUhKqyBZ_J-_FTY9fRJJry_/pub?output=csv",
   },
 
@@ -48,8 +44,8 @@ const CONFIG = {
     // Finale totals: "batch" = current rotation only, "season" = every rotation so far.
     scope: "batch",
     titles: { batch: "This rotation", season: "This season so far" },
-    // Next to the commitments: the sheet's scholarship total, for the whole year whatever the
-    // scope above (hidden when it's blank or 0, or totalsCsvUrl isn't set).
+    // Next to the commitments: the sheet's "Scholarship total", for the whole year whatever the
+    // scope above (hidden when the sheet has none or it's 0).
     scholarshipLabel: "in scholarships offered this year",
   },
 
@@ -144,7 +140,7 @@ const CONFIG = {
     stateZoomInMs: 1300,  // zoom into the college's state after landing
     stateZoomOutMs: 1000, // back out to the whole US before the next flight
     landBeatMs: 250,    // pause after landing before the card slides in
-    cardHoldMs: 3000,   // student card fully visible
+    cardHoldMs: 2000,   // student card fully visible
     finaleHoldMs: 3400, // totals on screen after Eddy lands home (finale = flightMs + this)
   },
 
@@ -154,11 +150,10 @@ const CONFIG = {
 };
 
 // URL options for testing: ?csv=<link> tries another sheet (e.g. a new sheet's published
-// link) without editing this file, ?totals=<link> another scholarship total tab; ?eddy=... picks the Eddy artwork.
+// link) without editing this file; ?eddy=... picks the Eddy artwork.
 (() => {
   const params = new URLSearchParams(location.search);
   if (params.get("csv")) { CONFIG.data.csvUrl = params.get("csv"); CONFIG.data.trial = true; }
-  if (params.get("totals")) { CONFIG.data.totalsCsvUrl = params.get("totals"); CONFIG.data.trial = true; }
   const e = CONFIG.eddy;
   const pick = params.get("eddy");
   e.art = e.arts[pick] ? pick : e.art;
