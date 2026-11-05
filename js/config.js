@@ -2,8 +2,9 @@
 const CONFIG = {
   data: {
     // Google Sheet published as CSV (File > Share > Publish to web > "TV feed" tab > CSV).
-    // The counselors' "College Acceptances" sheet. data/sample.csv has made-up test rows.
-    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRb-_kpbMWLq8QljbgNizmUALYyEn4TXruX4k23VzZt6uLVuh1CMALRnXUhKqyBZ_J-_FTY9fRJJry_/pub?output=csv",
+    // The counselors' "College Acceptances 2026-27" sheet, TV feed tab (Students stays private).
+    // data/sample.csv has made-up test rows.
+    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSvXEG3TPDD_gPQHFgJNlyXaHchbbxGFufcxsTz18UAbtLRDzADMXEYnrpJ-84tIQ/pub?gid=1225099856&single=true&output=csv",
   },
 
   title: {
