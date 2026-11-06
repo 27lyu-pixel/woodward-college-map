@@ -12,10 +12,16 @@ const CONFIG = {
     kicker: "Woodward Academy · Class of {year}",   // {year} = this year's seniors
   },
 
+  // The weekly cycle. paused: true plays every student entered so far (dated today or earlier)
+  // and never phases anyone out, e.g. for the demo while photos are pending. Set it to false to
+  // start the Friday cycle: each Friday's group replaces the previous week's.
+  rotation: { paused: true },
+
   order: {
     // Students play in sheet order, adjusted so that:
     notFirstState: "GA",       // a college in this state never plays first ("" to turn off)
     spreadSameCollege: true,   // two students at the same college never play back to back
+    spreadSameStudent: true,   // a student's colleges are spread out: everyone's 1st, then everyone's 2nd
   },
 
   // The sheet's "Status" column. Each category gets its own wording on the card, tag

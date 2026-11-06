@@ -47,7 +47,8 @@ const Finale = (() => {
   }
 
   function show(data) {
-    const scope = CONFIG.totals.scope === "season" ? "season" : "batch";
+    // While the weekly cycle is paused, everyone so far is playing: count them all.
+    const scope = CONFIG.totals.scope === "season" || CONFIG.rotation.paused ? "season" : "batch";
     const counts = totals(scope === "season" ? data.season : data.batch);
     const money = data.scholarships || 0;
     panel.select(".money").classed("hidden", !money);

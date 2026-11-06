@@ -8,7 +8,8 @@
 // - Photo is optional: the student's yearbook photo (Google Drive link or a file in assets/photos/).
 // - City and State are optional: they're filled in from the matched college. They're only
 //   needed to tell apart same-named colleges, or to place a college that isn't in the list.
-// - The current rotation is the latest "Rotation start" on or before today.
+// - The current rotation is the latest "Rotation start" on or before today (or, with
+//   CONFIG.rotation.paused, every row dated on or before today).
 // - A blank "Rotation start" means "same as the row above".
 // - Rows play in sheet order, except (see CONFIG.order and playOrder below): a Georgia
 //   college never plays first, and two students at the same college never play back to back.
@@ -251,7 +252,7 @@ const Data = (() => {
         }
         if (!r.skip && !MapView.project(r.lon, r.lat)) r.skip = `"${r.college}" is outside the US map.`;
       }
-      const inBatch = +r.date === +rotation;
+      const inBatch = CONFIG.rotation.paused || +r.date === +rotation;
       if (r.skip) flags.push({ row: r.row, message: `${r.student || "(no name)"}: ${r.skip} Not shown.`, inBatch });
       else if (r.warn) flags.push({ row: r.row, message: `${r.student}: ${r.warn}`, inBatch });
     }
@@ -262,8 +263,9 @@ const Data = (() => {
     return {
       today: now,
       rotation,
-      label: { today: fmt(now), rotation: fmt(rotation) },
-      batch: past.filter(r => +r.date === +rotation),   // every row of the current rotation, incl. skipped
+      label: { today: fmt(now), rotation: CONFIG.rotation.paused ? `everyone so far (weekly cycle paused; latest group ${fmt(rotation)})` : fmt(rotation) },
+      // Every row of the current rotation, incl. skipped; everyone so far while the cycle is paused.
+      batch: CONFIG.rotation.paused ? past : past.filter(r => +r.date === +rotation),
       season: past,                                     // every rotation up to today
       playable,
       scholarships,   // total dollars offered (whole year), or null
@@ -272,14 +274,16 @@ const Data = (() => {
   }
 
   // Play order: sheet order, nudged just enough to follow CONFIG.order.
-  // Each slot takes the earliest remaining row that (a) isn't in `notFirstState` when it's the
-  // first slot, (b) isn't the same college as the row before, and (c) still leaves the rest
+  // With spreadSameStudent, a student's colleges are spread out first: everyone's first
+  // college (in sheet order), then everyone's second, and so on. Then each slot takes the earliest remaining row that (a) isn't in `notFirstState` when it's the
+  // first slot, (b) isn't the same college or student as the row before, and (c) still leaves the rest
   // arrangeable without back-to-back repeats. If a rule can't be met (e.g. every college is in
   // Georgia, or most students go to one college), it's relaxed rather than dropping anyone;
   // "not first" wins over "no repeats" when the two conflict.
   function playOrder(rows) {
-    const { notFirstState, spreadSameCollege } = CONFIG.order;
+    const { notFirstState, spreadSameCollege, spreadSameStudent } = CONFIG.order;
     const key = r => r.matched || norm(r.college);
+    const who = r => norm(r.student);
     const state = r => (r.collegeState || r.state || "").toUpperCase();
 
     // Can `rest` be laid out with no two of a college in a row, not starting with `prev`?
@@ -291,11 +295,18 @@ const Data = (() => {
       return !(m % 2 && max === (m + 1) / 2 && counts.get(prev) === max);
     };
 
-    const left = rows.slice(), out = [];
+    let left = rows.slice();
+    if (spreadSameStudent) {
+      const count = new Map();
+      left = left.map((r, i) => { const k = count.get(who(r)) || 0; count.set(who(r), k + 1); return { r, k, i }; })
+        .sort((a, b) => a.k - b.k || a.i - b.i).map(x => x.r);
+    }
+    const out = [];
     while (left.length) {
       const prev = out.length ? key(out[out.length - 1]) : null;
       const ok = (r, i, strictFirst) => {
         if (strictFirst && !out.length && notFirstState && state(r) === notFirstState) return false;
+        if (spreadSameStudent && out.length && who(r) === who(out[out.length - 1])) return false;
         if (!spreadSameCollege) return true;
         return key(r) !== prev && canSpread(left.filter((_, j) => j !== i), key(r));
       };

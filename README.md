@@ -41,13 +41,16 @@ out the scholarship amounts and adding the year's total, and it's the only tab t
    as `data.csvUrl` in [js/config.js](js/config.js).
    To try a sheet before switching, open the slideshow with `?csv=` plus the link at the end of the URL.
 
+**The weekly cycle is paused for now** (`rotation.paused: true` in [js/config.js](js/config.js)): the TV plays
+everyone entered so far and phases nobody out. Set it to `false` to start the Friday cycle below.
+
 Counselors add a new group every Friday, with that Friday's date as its Rotation start. The page plays
 only rows from the latest rotation date on or before today, so each Friday's group replaces the
 previous one (and stays up until the next group starts). Between loops it reloads when the date changes,
 and it checks the sheet every hour (`refresh.checkMinutes`) and reloads if anything changed, so a group
-entered Friday afternoon is on the TV within the hour. Rows play in sheet order, moved only as much as needed so a Georgia
-college never plays first and two students at the same college never play back to back
-(`order` in [js/config.js](js/config.js)). If the sheet can't be reached, it plays the last copy that loaded.
+entered Friday afternoon is on the TV within the hour. Rows play in sheet order, except that a student's colleges are spread out (everyone's first
+college, then everyone's second), a Georgia college never plays first, and the same college or
+student never plays twice in a row (`order` in [js/config.js](js/config.js)). If the sheet can't be reached, it plays the last copy that loaded.
 
 ## Scholarship total
 Counselors type each college's offer (from SCOIR, e.g. `40000`) in the **Scholarship** column of that

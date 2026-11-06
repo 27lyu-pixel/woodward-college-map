@@ -319,8 +319,9 @@ def help_tab(wb):
                                     "today or earlier. Fixes to rows already showing also appear within the hour. "
                                     "Each week's group stays up until the next Friday's group replaces it. A future "
                                     "date waits for that day, so you can enter a group early."),
-        ("Order on screen", "Rows play in the order listed, except a Georgia college never goes first and the same "
-                            "college never plays twice in a row."),
+        ("Order on screen", "Put a student's colleges next to each other; the TV spreads them out (everyone's first "
+                            "college, then everyone's second). A Georgia college never goes first, and the same "
+                            "college or student never plays twice in a row."),
         ("Please don't", "Rename, move or insert columns, add rows above the headings, or type anything on the TV "
                          "feed tab (it fills in by itself and is public). Use a different tab for notes."),
     ]
