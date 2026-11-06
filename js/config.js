@@ -23,6 +23,7 @@ const CONFIG = {
     notFirstState: "GA",       // a college in this state never plays first ("" to turn off)
     spreadSameCollege: true,   // two students at the same college never play back to back
     spreadSameStudent: true,   // a student's colleges are spread out: everyone's 1st, then everyone's 2nd
+    committedFirst: true,      // every Committed student plays before the Accepted ones
   },
 
   // The sheet's "Status" column. Each category gets its own wording on the card, tag
