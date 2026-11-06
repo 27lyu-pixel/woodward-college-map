@@ -109,8 +109,8 @@ async function playStudents() {
   }
 }
 
-// 4. Finale: back out to the whole US, fly home while the map makes room, then the full
-//    trail and totals.
+// 4. Finale: back out to the whole US, fly home while the map makes room, then the trail
+//    (his last CONFIG.eddy.maxTrails flights) and totals.
 async function playFinale() {
   Card.hide();
   await zoomOut();

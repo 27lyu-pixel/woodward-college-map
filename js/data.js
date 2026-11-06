@@ -207,9 +207,12 @@ const Data = (() => {
     }
 
     let lastDate = null;
-    const rows = [];
+    const rows = [], broken = [];
     raw.forEach((r, i) => {
       const row = i + 2;  // sheet row number (row 1 is the header)
+      // A formula error (#REF!, #N/A, ...) means the sheet's formulas broke, e.g. after rows were
+      // deleted on an old-style TV feed tab. Skip the row; one flag below explains it.
+      if (Object.values(r).some(v => /^#(REF!|N\/A|VALUE!|ERROR!|NAME\?)/.test((v || "").trim()))) { broken.push(row); return; }
       const get = k => (col[k] ? (r[col[k]] || "").trim() : "");
       const student = get("student"), college = get("college");
       if (!student && !college) return;   // blank line
@@ -257,6 +260,7 @@ const Data = (() => {
       else if (r.warn) flags.push({ row: r.row, message: `${r.student}: ${r.warn}`, inBatch });
     }
 
+    if (broken.length) flags.push({ row: null, message: `${broken.length} row${broken.length === 1 ? "" : "s"} of the published sheet show formula errors like #REF! (rows ${broken.join(", ")}), so they're skipped. This happens when rows are deleted on the Students tab; replace the TV feed tab's formulas as described in the README ("TV feed shows #REF!").` });
     flags.forEach(f => console.warn(`[slideshow] ${f.row ? `Row ${f.row}: ` : ""}${f.message}`));
 
     const playable = r => !r.skip;

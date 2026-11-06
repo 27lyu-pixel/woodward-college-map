@@ -52,6 +52,17 @@ entered Friday afternoon is on the TV within the hour. Rows play in sheet order,
 college, then everyone's second), a Georgia college never plays first, and the same college or
 student never plays twice in a row (`order` in [js/config.js](js/config.js)). If the sheet can't be reached, it plays the last copy that loaded.
 
+### TV feed shows #REF!
+Sheets made from the template before Nov 6, 2026 point each TV feed cell at one exact row of Students,
+so deleting a row there leaves `#REF!` on the TV feed (the slideshow skips those rows, and `?debug=1`
+says so). To fix it for good: on the **TV feed** tab, select columns **A to G** (not H) and press Delete,
+then click **A1** and paste
+
+    =FILTER({Students!A1:F,Students!H1:H},Students!B1:B<>"")
+
+It copies every Students row that has a student, minus the Scholarship column, and adjusts by itself
+when rows are added, deleted or moved. Newer copies of the template use row-proof formulas already.
+
 ## Scholarship total
 Counselors type each college's offer (from SCOIR, e.g. `40000`) in the **Scholarship** column of that
 college's row on the Students tab. The TV feed tab leaves that column out and adds it up in its

@@ -9,7 +9,7 @@ const Eddy = (() => {
   let pos = [0, 0];
   let facing = 1;          // 1 = east (art faces right), -1 = west (mirrored)
   let tilt = 0;            // degrees, nose up is negative
-  let trailPoints = [];    // finished legs, one continuous line across every stop
+  let legs = [];           // finished legs of the route, oldest first (each a list of points)
   let liveLeg = [];        // part of the current leg flown so far
 
   function init() {
@@ -36,8 +36,11 @@ const Eddy = (() => {
     inner.attr("transform", `translate(${px - ax},${py - ay}) rotate(${tilt}) translate(${-px},${-py})`);
     renderBadge();
 
-    const pts = trailPoints.concat(liveLeg).map(MapView.toScreen);
-    trailPath.attr("d", pts.length > 1 ? d3.line()(pts) : null);
+    // Only the newest CONFIG.eddy.maxTrails legs are drawn (the one being flown counts).
+    const keep = Math.max(0, CONFIG.eddy.maxTrails - (liveLeg.length > 1 ? 1 : 0));
+    const shown = (keep ? legs.slice(-keep) : []).concat(liveLeg.length > 1 ? [liveLeg] : []);
+    const d = shown.map(leg => d3.line()(leg.map(MapView.toScreen))).join("");
+    trailPath.attr("d", d || null);
   }
 
   function showFrame(src) {
@@ -135,7 +138,7 @@ const Eddy = (() => {
         if (elapsed >= duration) {
           timer.stop();
           pos = at(1);
-          if (trail) { trailPoints = trailPoints.concat(trail(1)); liveLeg = []; }
+          if (trail) { legs.push(trail(1)); liveLeg = []; }
           perch();
           resolve();
         } else {
@@ -154,9 +157,9 @@ const Eddy = (() => {
   const screenPos = () => MapView.toScreen(pos);
   function show() { g.style("display", null); }
   function hide() { g.style("display", "none"); }
-  function clearTrail() { trailPoints = []; liveLeg = []; trailPath.classed("finale", false); render(); }
+  function clearTrail() { legs = []; liveLeg = []; trailPath.classed("finale", false); render(); }
 
-  // Finale: the dots flow along the whole route.
+  // Finale: the dots flow along the trail that's showing.
   function highlightTrail(on) { trailPath.classed("finale", on); }
 
   return {

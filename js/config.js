@@ -134,6 +134,7 @@ const CONFIG = {
     maxTilt: 22,               // degrees he leans into climbs and dives
     arcBend: 0.25,             // how much flights bow north (fraction of distance)
     minArc: 110,               // curve height for very short flights and hops (stage px)
+    maxTrails: 5,              // dotted trail lines on screen at once (newest flights; older ones vanish)
   },
 
   timing: {

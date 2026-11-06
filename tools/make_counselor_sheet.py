@@ -222,11 +222,14 @@ def tv_tab(wb):
     src = "ABCDEFH"   # Students columns copied, in order (G = the private amounts, skipped)
     for r in range(2, ROWS + 1):
         for i, c in enumerate(src, start=1):
-            # Empty unless the row has a student; a blank date stays blank ("same as above").
-            cell = ws.cell(row=r, column=i, value=f'=IF(OR(Students!$B{r}="",Students!{c}{r}=""),"",Students!{c}{r})')
+            # Same row of Students, found by ROW() rather than a cell reference, so deleting or
+            # inserting rows on Students never turns these into #REF!. Empty unless the row has
+            # a student; a blank date stays blank ("same as above").
+            get = f"INDEX(Students!${c}:${c},ROW())"
+            cell = ws.cell(row=r, column=i, value=f'=IF(OR(INDEX(Students!$B:$B,ROW())="",{get}=""),"",{get})')
             cell.font = f(size=10, color=MUTED)
         ws.cell(row=r, column=1).number_format = "m/d/yyyy"
-    total = ws.cell(row=2, column=8, value=f"=SUM(Students!G2:G{ROWS})")
+    total = ws.cell(row=2, column=8, value="=SUM(Students!$G:$G)")
     total.number_format = '"$"#,##0'
     total.font = f(size=11, bold=True, color=CRIMSON)
     ws.freeze_panes = "A2"
