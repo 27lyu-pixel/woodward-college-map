@@ -48,7 +48,7 @@ Counselors add a new group every Friday, with that Friday's date as its Rotation
 only rows from the latest rotation date on or before today, so each Friday's group replaces the
 previous one (and stays up until the next group starts). Between loops it reloads when the date changes,
 and it checks the sheet every hour (`refresh.checkMinutes`) and reloads if anything changed, so a group
-entered Friday afternoon is on the TV within the hour. Committed students play first, then accepted ones (`order.committedFirst`). Within each, rows play in sheet order, except that a student's colleges are spread out (everyone's first
+entered Friday afternoon is on the TV within the hour. Rows play in sheet order, except that a student's colleges are spread out (everyone's first
 college, then everyone's second), a Georgia college never plays first, and the same college or
 student never plays twice in a row (`order` in [js/config.js](js/config.js)). If the sheet can't be reached, it plays the last copy that loaded.
 

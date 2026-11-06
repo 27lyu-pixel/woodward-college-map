@@ -292,17 +292,14 @@ const Data = (() => {
   }
 
   // Play order: sheet order, nudged just enough to follow CONFIG.order.
-  // With committedFirst, every Committed row plays before the Accepted ones (each group
-  // arranged the same way, the second picking up where the first left off).
-  // With spreadSameStudent, a student's colleges are spread out: everyone's first college
-  // (in sheet order), then everyone's second, and so on. Then each slot takes the earliest
-  // remaining row that (a) isn't in `notFirstState` when it's the very first slot, (b) isn't
-  // the same college or student as the row before, and (c) still leaves the rest arrangeable
-  // without back-to-back repeats. If a rule can't be met (e.g. every college is in Georgia, or
-  // most students go to one college), it's relaxed rather than dropping anyone; "not first"
-  // wins over "no repeats" when the two conflict.
+  // With spreadSameStudent, a student's colleges are spread out first: everyone's first
+  // college (in sheet order), then everyone's second, and so on. Then each slot takes the earliest remaining row that (a) isn't in `notFirstState` when it's the
+  // first slot, (b) isn't the same college or student as the row before, and (c) still leaves the rest
+  // arrangeable without back-to-back repeats. If a rule can't be met (e.g. every college is in
+  // Georgia, or most students go to one college), it's relaxed rather than dropping anyone;
+  // "not first" wins over "no repeats" when the two conflict.
   function playOrder(rows) {
-    const { notFirstState, spreadSameCollege, spreadSameStudent, committedFirst } = CONFIG.order;
+    const { notFirstState, spreadSameCollege, spreadSameStudent } = CONFIG.order;
     const key = r => r.matched || norm(r.college);
     const who = r => norm(r.student);
     const state = r => (r.collegeState || r.state || "").toUpperCase();
@@ -316,38 +313,28 @@ const Data = (() => {
       return !(m % 2 && max === (m + 1) / 2 && counts.get(prev) === max);
     };
 
+    let left = rows.slice();
+    if (spreadSameStudent) {
+      const count = new Map();
+      left = left.map((r, i) => { const k = count.get(who(r)) || 0; count.set(who(r), k + 1); return { r, k, i }; })
+        .sort((a, b) => a.k - b.k || a.i - b.i).map(x => x.r);
+    }
     const out = [];
-    // Append one group of rows to `out`, following on from whatever is already there.
-    const arrange = group => {
-      let left = group.slice();
-      if (spreadSameStudent) {
-        const count = new Map();
-        left = left.map((r, i) => { const k = count.get(who(r)) || 0; count.set(who(r), k + 1); return { r, k, i }; })
-          .sort((a, b) => a.k - b.k || a.i - b.i).map(x => x.r);
-      }
-      while (left.length) {
-        const prev = out.length ? key(out[out.length - 1]) : null;
-        const ok = (r, i, strictFirst) => {
-          if (strictFirst && !out.length && notFirstState && state(r) === notFirstState) return false;
-          if (spreadSameStudent && out.length && who(r) === who(out[out.length - 1])) return false;
-          if (!spreadSameCollege) return true;
-          return key(r) !== prev && canSpread(left.filter((_, j) => j !== i), key(r));
-        };
-        let i = left.findIndex((r, i) => ok(r, i, true));
-        // "Not first" beats "no repeats": start out of state even if a repeat follows later.
-        if (i < 0 && !out.length && notFirstState) i = left.findIndex(r => state(r) !== notFirstState);
-        if (i < 0) i = left.findIndex((r, i) => ok(r, i, false));               // all in Georgia
-        if (i < 0 && spreadSameCollege) i = left.findIndex(r => key(r) !== prev); // repeat unavoidable later
-        if (i < 0) i = 0;                                                        // repeat unavoidable now
-        out.push(left.splice(i, 1)[0]);
-      }
-    };
-
-    if (committedFirst) {
-      arrange(rows.filter(r => r.status === "committed"));
-      arrange(rows.filter(r => r.status !== "committed"));
-    } else {
-      arrange(rows);
+    while (left.length) {
+      const prev = out.length ? key(out[out.length - 1]) : null;
+      const ok = (r, i, strictFirst) => {
+        if (strictFirst && !out.length && notFirstState && state(r) === notFirstState) return false;
+        if (spreadSameStudent && out.length && who(r) === who(out[out.length - 1])) return false;
+        if (!spreadSameCollege) return true;
+        return key(r) !== prev && canSpread(left.filter((_, j) => j !== i), key(r));
+      };
+      let i = left.findIndex((r, i) => ok(r, i, true));
+      // "Not first" beats "no repeats": start out of state even if a repeat follows later.
+      if (i < 0 && !out.length && notFirstState) i = left.findIndex(r => state(r) !== notFirstState);
+      if (i < 0) i = left.findIndex((r, i) => ok(r, i, false));               // all in Georgia
+      if (i < 0 && spreadSameCollege) i = left.findIndex(r => key(r) !== prev); // repeat unavoidable later
+      if (i < 0) i = 0;                                                        // repeat unavoidable now
+      out.push(left.splice(i, 1)[0]);
     }
     return out;
   }
