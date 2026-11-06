@@ -2,9 +2,10 @@
 const CONFIG = {
   data: {
     // Google Sheet published as CSV (File > Share > Publish to web > "TV feed" tab > CSV).
-    // The counselors' "College Acceptances 2026-27" sheet, TV feed tab (Students stays private).
+    // The counselors' "College Acceptances 2026-27" Google Sheet (imported Nov 6, 2026; replaces the
+    // .xlsx copy), TV feed tab (Students stays private).
     // data/sample.csv has made-up test rows.
-    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSvXEG3TPDD_gPQHFgJNlyXaHchbbxGFufcxsTz18UAbtLRDzADMXEYnrpJ-84tIQ/pub?gid=1225099856&single=true&output=csv",
+    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQw1De9-COY-VSwSg_EXrWxnQRG7Lv2XCAGcZTQ_NrRZ3GtD_KtfhVCPS9MVtpRa78bkxWeyNqy9zTK/pub?gid=1336388585&single=true&output=csv",
   },
 
   title: {
@@ -54,6 +55,9 @@ const CONFIG = {
     // Next to the commitments: the sheet's "Scholarship total", for the whole year whatever the
     // scope above (hidden when the sheet has none or it's 0).
     scholarshipLabel: "in scholarships offered this year",
+    // The same totals on a slim bar at the top of the screen whenever the finale isn't up.
+    bar: true,
+    barScholarshipLabel: "in scholarships",
   },
 
   woodward: {

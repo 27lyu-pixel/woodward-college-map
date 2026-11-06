@@ -20,6 +20,7 @@ const Debug = (() => {
       <h2>Slideshow data <small>press D to close</small></h2>
       <p>Today: <b>${data.label.today}</b> &middot; Playing rotation: <b>${data.label.rotation}</b>
          &middot; ${data.batch.filter(data.playable).length} of ${data.batch.length} rows shown
+         &middot; Class totals typed: <b>${["accepted", "committed"].map(k => data.classTotals?.[k] ?? "–").join(" acceptances, ")} commitments</b>
          &middot; Scholarship total: <b>${data.scholarships == null ? "not set up" : "$" + data.scholarships.toLocaleString("en-US")}</b>
          &middot; Sheet: <code>${esc(CONFIG.data.csvUrl)}</code></p>
       <table><tr><th>Row</th><th>Student</th><th>College (sheet)</th><th>Status</th><th>Matched to</th><th>Color</th></tr>${rows}</table>

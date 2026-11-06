@@ -1,8 +1,10 @@
 // Finale totals panel: students, colleges and states, plus commitments and acceptances, for
 // the current rotation ("batch") or every rotation so far ("season"), set by
 // CONFIG.totals.scope. Next to them, the year's scholarship total from the sheet, if any.
+// The same numbers stay on a slim bar at the top of the screen the rest of the time
+// (CONFIG.totals.bar), since many viewers walk by before the finale.
 const Finale = (() => {
-  let panel;
+  let panel, bar;
   const SLIDE_MS = 600, COUNT_MS = 1100;   // keep SLIDE_MS in sync with .totals in style.css
   const LABELS = {
     students: ["Student", "Students"],
@@ -27,6 +29,7 @@ const Finale = (() => {
           </div>`).join("")}
         <div class="cat money"><span class="money-num">$0</span> <span class="money-label"></span></div>
       </div>`);
+    bar = UI.layer().append("div").attr("class", "statbar");
   }
 
   const dollars = d3.format("$,.0f");
@@ -46,11 +49,36 @@ const Finale = (() => {
     };
   }
 
-  function show(data) {
+  // The numbers both the panel and the bar show.
+  function numbers(data) {
     // While the weekly cycle is paused, everyone so far is playing: count them all.
     const scope = CONFIG.totals.scope === "season" || CONFIG.rotation.paused ? "season" : "batch";
     const counts = totals(scope === "season" ? data.season : data.batch);
-    const money = data.scholarships || 0;
+    // Class totals typed on the sheet replace the counted commitments and acceptances.
+    for (const key of ["committed", "accepted"]) {
+      if (data.classTotals && data.classTotals[key] != null) counts[key] = data.classTotals[key];
+    }
+    return { scope, counts, money: data.scholarships || 0 };
+  }
+
+  // Slim always-on bar: fill it once per load; it shows except while the finale panel is up.
+  function setBar(data) {
+    const { scope, counts, money } = numbers(data);
+    if (!CONFIG.totals.bar || !counts.students) { bar.classed("off", true); return; }
+    const n = (k, labels) => `<b>${counts[k].toLocaleString("en-US")}</b> ${labels[counts[k] === 1 ? 0 : 1]}`;
+    const items = [
+      `<span class="bar-pin committed"></span>${n("committed", CONFIG.categories.committed.total)}`,
+      `<span class="bar-pin accepted"></span>${n("accepted", CONFIG.categories.accepted.total)}`,
+      ...(money ? [`<b>${dollars(money)}</b> ${CONFIG.totals.barScholarshipLabel}`] : []),
+      n("students", LABELS.students), n("colleges", LABELS.colleges), n("states", LABELS.states),
+    ];
+    bar.html(`<span class="bar-title">${CONFIG.totals.titles[scope]}</span>` +
+             items.map(i => `<span class="bar-item">${i}</span>`).join(""));
+  }
+
+  function show(data) {
+    const { scope, counts, money } = numbers(data);
+    bar.classed("away", true);
     panel.select(".money").classed("hidden", !money);
     panel.select(".money-label").text(CONFIG.totals.scholarshipLabel);
     panel.select(".money-num").text(dollars(0));
@@ -84,8 +112,9 @@ const Finale = (() => {
 
   function hide() {
     panel.classed("in", false);
+    bar.classed("away", false);
     return new Promise(r => setTimeout(r, SLIDE_MS));
   }
 
-  return { init, show, hide, totals };
+  return { init, show, hide, totals, setBar };
 })();

@@ -143,6 +143,7 @@ async function loadData() {
   Finale.init(stage);
   data = await loadData();
   Debug.init(data);
+  Finale.setBar(data);
   students = Data.playOrder(data.batch.filter(data.playable));
   Card.preload(students);
   home = MapView.project(CONFIG.woodward.lon, CONFIG.woodward.lat);

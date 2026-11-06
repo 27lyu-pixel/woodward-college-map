@@ -1,7 +1,8 @@
 // Loads the sheet CSV, picks the current rotation, and finds each college on the map.
 //
 // Published columns: Rotation start | Student name | College | City | State | Status | Photo |
-// Scholarship total. The counselors type on a private Students tab that also has each
+// Scholarship total | Acceptances total | Commitments total (the last two typed by the
+// counselors on the Class totals tab; the finale uses them instead of counting rows). The counselors type on a private Students tab that also has each
 // student's Scholarship amount; the sheet's "TV feed" tab copies it without the amounts and
 // adds "Scholarship total" (the sum, in its first row). Only the TV feed tab is published.
 // - Status is "Accepted" or "Committed" (blank = CONFIG.categories.default).
@@ -146,6 +147,9 @@ const Data = (() => {
       // Amounts per student should never be published; only to warn if they are.
       scholarship: headers.find(h => /scholar|award/.test(norm(h)) && !norm(h).includes("total")),
       scholarshipTotal: find("scholar", "total"),
+      // Class totals the counselors type on the sheet's Class totals tab (blank = count the rows).
+      acceptancesTotal: find("acceptances", "total"),
+      commitmentsTotal: find("commitments", "total"),
       photo: find("photo") || find("picture") || find("image"),
     };
   }
@@ -194,11 +198,20 @@ const Data = (() => {
     const raw = d3.csvParse(text);
     const col = columns(raw.columns);
     for (const [field, header] of Object.entries(col)) {
-      if (!header && !["city", "status", "scholarship", "scholarshipTotal", "photo"].includes(field)) flags.push({ row: null, message: `No "${field}" column found in the sheet.` });
+      if (!header && !["city", "status", "scholarship", "scholarshipTotal", "acceptancesTotal", "commitmentsTotal", "photo"].includes(field)) flags.push({ row: null, message: `No "${field}" column found in the sheet.` });
     }
     if (col.scholarship) flags.push({ row: null, message: `The published sheet has each student's "${col.scholarship}" amount, so anyone with the link can see it. Publish the "TV feed" tab instead of Students.` });
 
     // The year's scholarship total: the first filled cell of the "Scholarship total" column.
+    // Typed class totals: the first filled cell of each column, or null to count the rows.
+    const classTotals = {};
+    for (const [key, field] of [["accepted", "acceptancesTotal"], ["committed", "commitmentsTotal"]]) {
+      const cell = col[field] ? raw.map(r => (r[col[field]] || "").trim()).find(Boolean) : undefined;
+      const n = cell ? Number(cell.replace(/[,\s]/g, "")) : NaN;
+      classTotals[key] = cell && Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+      if (cell && classTotals[key] === null) flags.push({ row: null, message: `Can't read the class total "${cell}" (type a whole number).` });
+    }
+
     let scholarships = null;
     if (col.scholarshipTotal) {
       const cell = raw.map(r => (r[col.scholarshipTotal] || "").trim()).find(Boolean);
@@ -273,6 +286,7 @@ const Data = (() => {
       season: past,                                     // every rotation up to today
       playable,
       scholarships,   // total dollars offered (whole year), or null
+      classTotals,    // { accepted, committed }: typed on the Class totals tab, or null each
       flags,
     };
   }

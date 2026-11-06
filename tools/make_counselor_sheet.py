@@ -34,7 +34,8 @@ CRIMSON, CHARCOAL, MUTED = "9D2235", "3D4047", "6B6E75"
 PINK, YELLOW, RED_SOFT, GREY = "FBE9EC", "FFF2B3", "F8D7DA", "F3F3F4"
 FONT = "Arial"
 HEADERS = ["Rotation start", "Student name", "College", "City", "State", "Status", "Scholarship", "Photo"]
-TV_HEADERS = ["Rotation start", "Student name", "College", "City", "State", "Status", "Photo", "Scholarship total"]
+TV_HEADERS = ["Rotation start", "Student name", "College", "City", "State", "Status", "Photo", "Scholarship total",
+              "Acceptances total", "Commitments total"]
 STATES = ("AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH "
           "NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY PR").split()
 
@@ -217,7 +218,7 @@ def tv_tab(wb):
     header_row(ws, 1, TV_HEADERS)
     for h in ws[1]:
         h.fill = fill("9A9CA1")
-    for col, width in zip("ABCDEFGH", (16, 30, 48, 18, 9, 15, 30, 20)):
+    for col, width in zip("ABCDEFGHIJ", (16, 30, 48, 18, 9, 15, 30, 20, 20, 20)):
         ws.column_dimensions[col].width = width
     src = "ABCDEFH"   # Students columns copied, in order (G = the private amounts, skipped)
     for r in range(2, ROWS + 1):
@@ -232,7 +233,42 @@ def tv_tab(wb):
     total = ws.cell(row=2, column=8, value="=SUM(Students!$G:$G)")
     total.number_format = '"$"#,##0'
     total.font = f(size=11, bold=True, color=CRIMSON)
+    # The class totals typed on the Class totals tab (blank = the TV counts the rows itself).
+    for col, src in ((9, "$B$2"), (10, "$B$3")):
+        c = ws.cell(row=2, column=col, value=f"=IF('Class totals'!{src}=\"\",\"\",'Class totals'!{src})")
+        c.font = f(size=11, bold=True, color=CRIMSON)
     ws.freeze_panes = "A2"
+
+
+def class_totals_tab(wb):
+    """Two numbers the counselors type for the whole class; the finale shows them."""
+    ws = wb.create_sheet("Class totals")
+    ws.sheet_properties.tabColor = CRIMSON
+    header_row(ws, 1, ["Class total", "Number"])
+    ws.column_dimensions["A"].width = 44
+    ws.column_dimensions["B"].width = 14
+    ws.row_dimensions[1].height = 26
+    for r, label in ((2, "Colleges admitted to (total acceptances)"), (3, "Students committed")):
+        ws.cell(row=r, column=1, value=label).font = f(size=12, bold=True, color=CHARCOAL)
+        b = ws.cell(row=r, column=2)
+        b.font = f(size=14, bold=True, color=CRIMSON)
+        b.number_format = "#,##0"
+        b.border = Border(top=thin, bottom=thin, left=thin, right=thin)
+        ws.row_dimensions[r].height = 24
+    dv = DataValidation(type="whole", operator="greaterThanOrEqual", formula1="0", allow_blank=True,
+                        errorStyle="stop", showInputMessage=True, showErrorMessage=True, promptTitle="Class total",
+                        prompt="The number for the whole class (e.g. from SCOIR). Leave blank to have the TV "
+                               "count the rows on the Students tab instead.",
+                        errorTitle="Not a number", error="Type a whole number, like 412.")
+    ws.add_data_validation(dv)
+    dv.add("B2:B3")
+    note = ws.cell(row=5, column=1, value="Type the class totals in the red-bordered cells. The TV shows them at the end "
+                                          "of the slideshow (these two numbers are public). Leave a cell blank and the "
+                                          "TV counts the rows on the Students tab instead.")
+    note.font = f(size=10, italic=True, color=MUTED)
+    note.alignment = Alignment(wrap_text=True, vertical="top")
+    ws.merge_cells("A5:B5")
+    ws.row_dimensions[5].height = 58
 
 
 def help_tab(wb):
@@ -307,6 +343,9 @@ def help_tab(wb):
 
     put("Good to know", size=13, bold=True, color=CRIMSON, height=20)
     tips = [
+        ("Class totals", "On the Class totals tab, type the whole class's number of colleges admitted to and "
+                         "students committed (from SCOIR). The end of the slideshow shows them. Leave them blank "
+                         "and the TV counts the rows on the Students tab instead."),
         ("Scholarships", "Type each college's offer in the Scholarship column of that college's row. Every offer counts "
                          "toward the year's total on the TV, including colleges the student didn't choose. The amounts "
                          "stay private: the TV feed tab leaves them out and shows only the sum."),
@@ -395,6 +434,7 @@ def main():
     students = students_tab(wb, len(rows))
     if args.rows:
         fill_students(students, read_rows(args.rows), rows)
+    class_totals_tab(wb)
     tv_tab(wb)
     help_tab(wb)
     colleges_tab(wb, rows)

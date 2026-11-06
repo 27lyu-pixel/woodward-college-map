@@ -126,6 +126,26 @@ html, body {
 .cat.money.hidden { display: none; }
 .money-num { color: var(--wa-crimson); font-weight: 800; font-variant-numeric: tabular-nums; }
 
+/* Always-on totals bar at the top (hidden while the finale panel is up) */
+.statbar {
+  position: absolute; left: 50%; top: 28px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 30px; white-space: nowrap;
+  padding: 14px 34px; border-radius: 999px;
+  background: rgba(94, 18, 32, 0.82); color: var(--wa-white);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  font-family: var(--font); font-size: 25px; font-weight: 600;
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+.statbar.away { opacity: 0; transform: translate(-50%, -30px); }
+.statbar.off { display: none; }
+.statbar b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.bar-title { font-size: 18px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.75; }
+.bar-item { display: inline-flex; align-items: center; gap: 9px; }
+.bar-item + .bar-item::before { content: ""; width: 1px; height: 26px; margin-right: 21px; background: rgba(255, 255, 255, 0.35); }
+.bar-pin { width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box; }
+.bar-pin.committed { background: var(--wa-white); }
+.bar-pin.accepted { border: 4px solid var(--wa-white); }
+
 /* Student card */
 /* HTML layer over the map, sized like the stage and scaled by js/ui.js */
 #ui { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0;

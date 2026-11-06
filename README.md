@@ -63,6 +63,15 @@ then click **A1** and paste
 It copies every Students row that has a student, minus the Scholarship column, and adjusts by itself
 when rows are added, deleted or moved. Newer copies of the template use row-proof formulas already.
 
+## Class totals
+The **Class totals** tab has two cells for the counselors: **Colleges admitted to (total acceptances)** and
+**Students committed**, for the whole class (e.g. from SCOIR). The TV feed copies them into its
+**Acceptances total** and **Commitments total** columns, and the finale shows them in place of the
+commitments and acceptances it would otherwise count from the rows. Leave a cell blank to go back to counting.
+For a sheet made before this tab existed, add a tab named `Class totals` with the two numbers in B2 and B3,
+then on the TV feed put `Acceptances total` in I1, `=IF('Class totals'!B2="","",'Class totals'!B2)` in I2,
+`Commitments total` in J1 and `=IF('Class totals'!B3="","",'Class totals'!B3)` in J2.
+
 ## Scholarship total
 Counselors type each college's offer (from SCOIR, e.g. `40000`) in the **Scholarship** column of that
 college's row on the Students tab. The TV feed tab leaves that column out and adds it up in its
