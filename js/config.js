@@ -134,7 +134,7 @@ const CONFIG = {
     // when he flies west. Its spot on each frame is `badgeSpots` in the artwork above.
     // The logo is cut from the mascot artwork by tools/cut_wa_logo.py.
     badge: { src: "assets/eddy/wa.png", aspect: 1.012 },   // aspect = height / width of the logo
-    flapFps: 10,
+    flapFps: 12,   
     maxTilt: 22,               // degrees he leans into climbs and dives
     arcBend: 0.25,             // how much flights bow north (fraction of distance)
     minArc: 110,               // curve height for very short flights and hops (stage px)
@@ -142,18 +142,18 @@ const CONFIG = {
   },
 
   timing: {
-    titleFlyInMs: 1600, // Eddy flies onto the title (title slide is ~5s in all)
-    titlePerchMs: 2400, // Eddy perched on the title
-    homeCircleMs: 2900, // title fades; Eddy circles Woodward once and lands
-    zoomMs: 2200,       // College Park -> full US zoom
-    flightMs: 1700,     // one flight between stops (also his flight home in the finale)
-    hopMs: 800,         // short hop when two rows in a row share a college
-    localZoomMs: 1300,  // zoom into / out of the Atlanta-area view
-    stateZoomInMs: 1300,  // zoom into the college's state after landing
-    stateZoomOutMs: 1000, // back out to the whole US before the next flight
-    landBeatMs: 250,    // pause after landing before the card slides in
-    cardHoldMs: 2000,   // student card fully visible
-    finaleHoldMs: 3400, // totals on screen after Eddy lands home (finale = flightMs + this)
+    titleFlyInMs: 1300, // Eddy flies onto the title (title slide is ~4s in all)
+    titlePerchMs: 1900, // Eddy perched on the title
+    homeCircleMs: 2300, // title fades; Eddy circles Woodward once and lands
+    zoomMs: 1700,       // College Park -> full US zoom
+    flightMs: 1400,     // one flight between stops (also his flight home in the finale)
+    hopMs: 650,         // short hop when two rows in a row share a college
+    localZoomMs: 1000,  // zoom into / out of the Atlanta-area view
+    stateZoomInMs: 1000,  // zoom into the college's state after landing
+    stateZoomOutMs: 800,  // back out to the whole US before the next flight
+    landBeatMs: 200,    // pause after landing before the card slides in
+    cardHoldMs: 1700,   // student card fully visible
+    finaleHoldMs: 3000, // totals on screen after Eddy lands home (finale = flightMs + this)
   },
 
   // Between loops (never mid-student), the page reloads when the date changes or when the
