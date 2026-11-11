@@ -55,8 +55,11 @@ const CONFIG = {
     // Next to the commitments: the sheet's "Scholarship total", for the whole year whatever the
     // scope above (hidden when the sheet has none or it's 0).
     scholarshipLabel: "in scholarships offered this year",
-    // The same totals on a slim bar at the top of the screen whenever the finale isn't up.
+    // The totals on a slim bar at the top of the screen.
     bar: true,
+    // The big totals pop-up at the end of each cycle. Off: the cycle ends with Eddy flying home
+    // and the trail lit up, and the bar at the top stays on screen the whole time.
+    panel: false,
     barScholarshipLabel: "in scholarships",
   },
 

@@ -66,7 +66,7 @@ when rows are added, deleted or moved. Newer copies of the template use row-proo
 ## Class totals
 The **Class totals** tab has two cells for the counselors: **Colleges admitted to (total acceptances)** and
 **Students committed**, for the whole class (e.g. from SCOIR). The TV feed copies them into its
-**Acceptances total** and **Commitments total** columns, and the finale shows them in place of the
+**Acceptances total** and **Commitments total** columns, and the totals bar shows them in place of the
 commitments and acceptances it would otherwise count from the rows. Leave a cell blank to go back to counting.
 For a sheet made before this tab existed, add a tab named `Class totals` with the two numbers in B2 and B3,
 then on the TV feed put `Acceptances total` in I1, `=IF('Class totals'!B2="","",'Class totals'!B2)` in I2,
@@ -77,8 +77,8 @@ Counselors type each college's offer (from SCOIR, e.g. `40000`) in the **Scholar
 college's row on the Students tab. The TV feed tab leaves that column out and adds it up in its
 **Scholarship total** column (`=SUM(Students!G2:G2000)` in H2), so the published sheet has only the sum,
 never who got what. Every offer counts, including colleges the student turned down.
-The finale shows "$X in scholarships offered this year" next to the commitments, whatever `totals.scope`
-is set to, and hides it when the total is blank or 0. The `?debug=1` panel shows the total it read, and
+The totals bar at the top shows "$X in scholarships", whatever `totals.scope` is set to, and hides it
+when the total is blank or 0. The `?debug=1` panel shows the total it read, and
 warns if the published sheet has per-student amounts (meaning the Students tab was published by mistake).
 
 ## Match photos automatically
@@ -122,6 +122,7 @@ matched, and any flagged rows. Add `&today=2026-11-20` to preview another date.
 | Atlanta-area zoom for nearby colleges (radius, zoom level) | `map.local` in [js/config.js](js/config.js) |
 | College colors and nicknames, colleges missing from IPEDS | [data/college-extras.json](data/college-extras.json) |
 | A college's logo on the card is wrong or missing: put an image in `assets/logos/` and add `"logo": "assets/logos/name.png"` to that college | [data/college-extras.json](data/college-extras.json) |
+| Totals: bar at the top (`totals.bar`), end-of-cycle pop-up (`totals.panel`, off) | `totals` in [js/config.js](js/config.js) |
 | Turn card logos off, or stop using website icons as a fallback | `card.logos` in [js/config.js](js/config.js) |
 | Which Eddy plays: `"drawn"` or `"higgsfield"` (compare both at `/tools/eddy-sheet.html`, or add `?eddy=higgsfield` to the URL) | `eddy.art` in [js/config.js](js/config.js) |
 | Eddy artwork (facing right; 2+ wing frames + perched) | `assets/eddy/` (drawn, `tools/draw_eddy.py`), `assets/eddy-hf/` (Higgsfield, fitted by `tools/fit_eddy_png.py`) |

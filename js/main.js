@@ -109,15 +109,19 @@ async function playStudents() {
   }
 }
 
-// 4. Finale: back out to the whole US, fly home while the map makes room, then the trail
-//    (his last CONFIG.eddy.maxTrails flights) and totals.
+// 4. Finale: back out to the whole US, fly home, then the trail (his last
+//    CONFIG.eddy.maxTrails flights) lights up. The totals pop-up only shows when
+//    CONFIG.totals.panel is on; otherwise the totals bar at the top covers it.
 async function playFinale() {
+  const panel = CONFIG.totals.panel && students.length;
   Card.hide();
   await zoomOut();
-  await Promise.all([Eddy.flyTo(home, t.flightMs), MapView.moveToFinale(t.flightMs)]);
+  // The map only shrinks to make room when the totals pop-up is on; otherwise the bar at
+  // the top already shows the totals.
+  await Promise.all([Eddy.flyTo(home, t.flightMs), panel ? MapView.moveToFinale(t.flightMs) : null]);
   Eddy.highlightTrail(true);
   MapView.celebrate(true);
-  if (students.length) Finale.show(data);
+  if (panel) Finale.show(data);
   await wait(t.finaleHoldMs);
 }
 
