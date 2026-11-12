@@ -125,6 +125,8 @@ paste a link into the cell, and the next run fills it in or clears the note.
 ## Run it on the TV
 Open the page in Chrome in kiosk mode so it fills the screen with no browser bars, e.g.
 `google-chrome --kiosk https://<your-user>.github.io/<repo>/` (or press F11 for full screen).
+On the slideshow itself, press **F** to go full screen (F again to leave). That lasts until the page reloads
+(after a sheet change, at midnight, or when you press R), so press F again then, or use kiosk mode.
 
 ## Check the data
 Add `?debug=1` to the URL (or press **D**) to see which rotation is playing, how each college

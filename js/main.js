@@ -1,5 +1,5 @@
 // The full loop: title -> home base -> one flight per student -> Congratulations -> title ...
-// Keys: R reloads, D toggles the debug panel.
+// Keys: F toggles full screen, R reloads, D toggles the debug panel.
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const t = CONFIG.timing;
 const loadedOn = new Date().toDateString();
@@ -7,8 +7,22 @@ let lastCheck = Date.now();
 let home, data, students;
 
 document.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;   // leave browser shortcuts (Cmd+R...) alone
   if (e.key === "r" || e.key === "R") reloadFresh();
+  if (e.key === "f" || e.key === "F") toggleFullscreen();
 });
+
+// Full screen with no tabs or address bar. Browsers only allow it from a key press or click,
+// and leave it when the page reloads, so kiosk mode (README) is still best for the TV.
+function toggleFullscreen() {
+  const doc = document, el = doc.documentElement;
+  if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+    (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
+  } else {
+    const p = (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    if (p && p.catch) p.catch(err => console.warn("[slideshow] full screen refused:", err));
+  }
+}
 
 // Quadratic curve through screen points a -> b, bending toward c.
 const quad = (a, c, b) => s => [0, 1].map(i => (1 - s) ** 2 * a[i] + 2 * (1 - s) * s * c[i] + s * s * b[i]);
