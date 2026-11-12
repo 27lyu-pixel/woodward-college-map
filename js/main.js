@@ -7,7 +7,7 @@ let lastCheck = Date.now();
 let home, data, students;
 
 document.addEventListener("keydown", e => {
-  if (e.key === "r" || e.key === "R") location.reload();
+  if (e.key === "r" || e.key === "R") reloadFresh();
 });
 
 // Quadratic curve through screen points a -> b, bending toward c.
@@ -130,7 +130,7 @@ async function loadData() {
   } catch (err) {
     // No sheet and no saved copy: keep the title and home base running, retry soon.
     console.error(err);
-    setTimeout(() => location.reload(), CONFIG.refresh.retryMinutes * 60000);
+    setTimeout(reloadFresh, CONFIG.refresh.retryMinutes * 60000);
     const label = { today: new Date().toDateString(), rotation: "none" };
     return { batch: [], season: [], playable: () => true, flags: [{ row: null, message: err.message }], label };
   }
@@ -152,17 +152,18 @@ async function loadData() {
   Card.preload(students);
   home = MapView.project(CONFIG.woodward.lon, CONFIG.woodward.lat);
 
+  started = true;   // from here on, the loop's own .catch below handles failures
   for (let first = true; ; first = false) {
     // Between loops, so a student is never cut off: reload on a new day (a new rotation may
     // start), or when the sheet has changed (checked every CONFIG.refresh.checkMinutes).
-    if (new Date().toDateString() !== loadedOn) { location.reload(); return; }
+    if (new Date().toDateString() !== loadedOn) { reloadFresh(); return; }
     if (Date.now() - lastCheck >= CONFIG.refresh.checkMinutes * 60000) {
       lastCheck = Date.now();
-      if (await Data.sheetChanged()) { location.reload(); return; }
+      if (await Data.sheetChanged()) { reloadFresh(); return; }
     }
     await playTitle(first);
     await playHomeBase();
     await playStudents();
     await playFinale();
   }
-})();
+})().catch(retryLater);   // the loop never ends on its own; if it stops, start over

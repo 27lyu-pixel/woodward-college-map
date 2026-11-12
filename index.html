@@ -12,21 +12,37 @@
 <body>
   <!-- Fixed 1920x1080 stage; the browser scales it to fit any screen. -->
   <svg id="stage" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet"></svg>
-  <!-- Student card and finale totals, scaled to match the stage (js/ui.js). -->
+  <!-- Student card and totals bar, scaled to match the stage (js/ui.js). -->
   <div id="ui"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/map.js"></script>
-  <script src="js/title.js"></script>
-  <script src="js/eddy.js"></script>
-  <script src="js/card.js"></script>
-  <script src="js/totals.js"></script>
-  <script src="js/congrats.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/debug.js"></script>
-  <script src="js/main.js"></script>
+  <script>
+    // Always load this version's own files. Browsers (and GitHub Pages) keep copies for up to
+    // 10 minutes, so right after an update a reload could mix old and new files and stop.
+    // Each file gets a fresh ?v=, and reloadFresh() also skips the browser's copy of this page.
+    function reloadFresh() {
+      const params = new URLSearchParams(location.search);
+      params.set("v", Date.now());
+      location.replace(location.pathname + "?" + params);
+    }
+    // If a file doesn't load, starting up fails, or the loop stops (js/main.js), try again in
+    // a minute instead of sitting frozen on the TV.
+    let retrying = false, started = false;
+    function retryLater(err) {
+      console.error("[slideshow] stopped; reloading in 60 s:", err);
+      if (!retrying) { retrying = true; setTimeout(reloadFresh, 60000); }
+    }
+    addEventListener("error", e => { if (!started) retryLater(e.error || e.message); });
+    const v = Date.now();
+    ["config", "ui", "map", "title", "eddy", "card", "totals", "congrats", "data", "debug", "main"]
+      .forEach(name => {
+        const s = document.createElement("script");
+        s.src = `js/${name}.js?v=${v}`;
+        s.async = false;   // run in this order
+        s.onerror = () => retryLater(`couldn't load ${s.src}`);
+        document.body.appendChild(s);
+      });
+  </script>
 </body>
 </html>
