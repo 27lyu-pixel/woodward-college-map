@@ -12,7 +12,8 @@
 // - City and State are optional: they're filled in from the matched college. They're only
 //   needed to tell apart same-named colleges, or to place a college that isn't in the list.
 // - The current rotation is the latest "Rotation start" on or before today (or, with
-//   CONFIG.rotation.paused, every row dated on or before today).
+//   CONFIG.rotation.paused, every row dated on or before today). With CONFIG.rotation.keepCommitted,
+//   Committed rows stay in every rotation after theirs; only Accepted rows are replaced.
 // - A blank "Rotation start" means "same as the row above".
 // - Rows play in sheet order, except (see CONFIG.order and playOrder below): a Georgia
 //   college never plays first, and two students at the same college never play back to back.
@@ -261,6 +262,8 @@ const Data = (() => {
     const now = today();
     const past = rows.filter(r => r.date && r.date <= now);
     const rotation = past.length ? new Date(Math.max(...past.map(r => +r.date))) : null;
+    const inRotation = r => CONFIG.rotation.paused || +r.date === +rotation ||
+      (CONFIG.rotation.keepCommitted && r.status === "committed");
     if (!rotation) flags.push({ row: null, message: `No rotation starts on or before ${fmt(now)}.` });
 
     // Resolve every row up to today (batch and season); report problems once per row.
@@ -284,7 +287,7 @@ const Data = (() => {
         }
         if (!r.skip && !MapView.project(r.lon, r.lat)) r.skip = `"${r.college}" is outside the US map.`;
       }
-      const inBatch = CONFIG.rotation.paused || +r.date === +rotation;
+      const inBatch = inRotation(r);
       if (!r.skip && !r.photo && photoFiles.size && CONFIG.card.photos.enabled) r.warn = r.warn || `No photo: name a photo "${r.student}.jpg" in assets/photos/ or fill in the Photo cell.`;
       if (r.skip) flags.push({ row: r.row, message: `${r.student || "(no name)"}: ${r.skip} Not shown.`, inBatch });
       else if (r.warn) flags.push({ row: r.row, message: `${r.student}: ${r.warn}`, inBatch });
@@ -294,12 +297,14 @@ const Data = (() => {
     flags.forEach(f => console.warn(`[slideshow] ${f.row ? `Row ${f.row}: ` : ""}${f.message}`));
 
     const playable = r => !r.skip;
+    // The current rotation: this Friday's group, plus every commitment so far (keepCommitted).
     return {
       today: now,
       rotation,
-      label: { today: fmt(now), rotation: CONFIG.rotation.paused ? `everyone so far (weekly cycle paused; latest group ${fmt(rotation)})` : fmt(rotation) },
+      label: { today: fmt(now), rotation: CONFIG.rotation.paused ? `everyone so far (weekly cycle paused; latest group ${fmt(rotation)})`
+        : fmt(rotation) + (CONFIG.rotation.keepCommitted ? " + every commitment so far" : "") },
       // Every row of the current rotation, incl. skipped; everyone so far while the cycle is paused.
-      batch: CONFIG.rotation.paused ? past : past.filter(r => +r.date === +rotation),
+      batch: past.filter(inRotation),
       season: past,                                     // every rotation up to today
       playable,
       scholarships,   // total dollars offered (whole year), or null
@@ -368,5 +373,5 @@ const Data = (() => {
 
   const stateName = abbr => STATES[(abbr || "").toUpperCase()] || null;
 
-  return { load, norm, playOrder, stateName, sheetChanged };
+  return { load, norm, playOrder, stateName, sheetChanged, today };
 })();

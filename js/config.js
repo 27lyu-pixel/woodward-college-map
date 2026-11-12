@@ -13,10 +13,22 @@ const CONFIG = {
     kicker: "Woodward Academy · Class of {year}",   // {year} = this year's seniors
   },
 
+  // Days-until-graduation line under the title and on the Congratulations screen
+  // (e.g. "177 days until graduation · May 8, 2027"). It goes away the day after.
+  graduation: { date: "2027-05-08", label: "until graduation", todayLabel: "Graduation day!" },
+
+  // End of each loop: Eddy flies to this screen (with confetti), then back to the title.
+  congrats: {
+    kicker: "Woodward Academy",
+    lines: ["Congratulations", "to the Class of {year}!"],   // {year} = this year's seniors
+  },
+
   // The weekly cycle. paused: true plays every student entered so far (dated today or earlier)
   // and never phases anyone out, e.g. for the demo while photos are pending. Set it to false to
-  // start the Friday cycle: each Friday's group replaces the previous week's.
-  rotation: { paused: true },
+  // start the Friday cycle: each Friday's group of acceptances replaces the previous week's.
+  // keepCommitted: commitments stay in every rotation from the week they're entered on; only
+  // the accepted students are swapped out each Friday.
+  rotation: { paused: true, keepCommitted: true },
 
   order: {
     // Students play in sheet order, adjusted so that:
@@ -26,7 +38,7 @@ const CONFIG = {
   },
 
   // The sheet's "Status" column. Each category gets its own wording on the card, tag
-  // color and pin style, and is counted separately in the finale.
+  // color and pin style, and is counted separately on the totals bar.
   categories: {
     default: "accepted",   // used when the Status cell is blank
     committed: { label: "Committed", kicker: "has committed to", total: ["Commitment", "Commitments"] },
@@ -49,17 +61,13 @@ const CONFIG = {
   },
 
   totals: {
-    // Finale totals: "batch" = current rotation only, "season" = every rotation so far.
+    // "batch" = current rotation only, "season" = every rotation so far.
     scope: "batch",
     titles: { batch: "This rotation", season: "This season so far" },
     // Next to the commitments: the sheet's "Scholarship total", for the whole year whatever the
     // scope above (hidden when the sheet has none or it's 0).
-    scholarshipLabel: "in scholarships offered this year",
     // The totals on a slim bar at the top of the screen.
     bar: true,
-    // The big totals pop-up at the end of each cycle. Off: the cycle ends with Eddy flying home
-    // and the trail lit up, and the bar at the top stays on screen the whole time.
-    panel: false,
     barScholarshipLabel: "in scholarships",
   },
 
@@ -88,8 +96,6 @@ const CONFIG = {
     // side of the screen away from the student card. maxZoom keeps tiny states (RI, DE, DC)
     // from filling the screen. Set enabled: false to stay on the whole-US map.
     state: { enabled: true, maxZoom: 7 },
-    // Finale camera: map shrinks to `scale` and moves up `lift` px to make room for the totals.
-    finale: { scale: 0.84, lift: 110 },
   },
 
   eddy: {
@@ -149,14 +155,15 @@ const CONFIG = {
     titlePerchMs: 1900, // Eddy perched on the title
     homeCircleMs: 2300, // title fades; Eddy circles Woodward once and lands
     zoomMs: 1700,       // College Park -> full US zoom
-    flightMs: 1400,     // one flight between stops (also his flight home in the finale)
+    flightMs: 1400,     // one flight between stops
     hopMs: 650,         // short hop when two rows in a row share a college
     localZoomMs: 1000,  // zoom into / out of the Atlanta-area view
     stateZoomInMs: 1000,  // zoom into the college's state after landing
     stateZoomOutMs: 800,  // back out to the whole US before the next flight
     landBeatMs: 200,    // pause after landing before the card slides in
     cardHoldMs: 1700,   // student card fully visible
-    finaleHoldMs: 3000, // totals on screen after Eddy lands home (finale = flightMs + this)
+    congratsFlyInMs: 1500, // Eddy flies from his last college onto the Congratulations screen
+    congratsHoldMs: 4500,  // Congratulations screen with Eddy perched, before the title comes back
   },
 
   // Between loops (never mid-student), the page reloads when the date changes or when the

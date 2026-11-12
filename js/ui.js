@@ -1,4 +1,4 @@
-// HTML layer for the student card and the finale totals, laid over the map and scaled to
+// HTML layer for the student card and the totals bar, laid over the map and scaled to
 // the same 1920x1080 stage. It's kept outside the SVG on purpose: Safari doesn't scale
 // HTML placed inside an SVG, which made the card huge and cut off.
 const UI = (() => {

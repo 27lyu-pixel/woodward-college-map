@@ -157,13 +157,10 @@ const Eddy = (() => {
   const screenPos = () => MapView.toScreen(pos);
   function show() { g.style("display", null); }
   function hide() { g.style("display", "none"); }
-  function clearTrail() { legs = []; liveLeg = []; trailPath.classed("finale", false); render(); }
-
-  // Finale: the dots flow along the trail that's showing.
-  function highlightTrail(on) { trailPath.classed("finale", on); }
+  function clearTrail() { legs = []; liveLeg = []; render(); }
 
   return {
     init, placeAt, placeAtScreen, screenPos, flyTo, flyScreenPath,
-    perch, show, hide, clearTrail, highlightTrail,
+    perch, show, hide, clearTrail,
   };
 })();

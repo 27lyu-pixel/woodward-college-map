@@ -1,4 +1,4 @@
-// The full loop: title -> home base -> one flight per student -> finale -> title ...
+// The full loop: title -> home base -> one flight per student -> Congratulations -> title ...
 // Keys: R reloads, D toggles the debug panel.
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const t = CONFIG.timing;
@@ -13,10 +13,12 @@ document.addEventListener("keydown", e => {
 // Quadratic curve through screen points a -> b, bending toward c.
 const quad = (a, c, b) => s => [0, 1].map(i => (1 - s) ** 2 * a[i] + 2 * (1 - s) * s * c[i] + s * s * b[i]);
 
-// 1. Title: Eddy flies onto the words and perches.
+// 1. Title: Eddy flies onto the words and perches. After a loop the title fades in over the
+//    Congratulations screen and he flies across from his perch there.
 async function playTitle(first) {
-  const from = first ? [-160, 300] : Eddy.screenPos();   // after a loop he flies up from Woodward
-  await Promise.all([Title.show(), Finale.hide(), Card.hide()]);
+  const from = first ? [-160, 300] : Eddy.screenPos();
+  Totals.away(false);
+  await Promise.all([Title.show(), first ? null : Congrats.hide(), Card.hide()]);
 
   // Hidden behind the title: reset the map to the close-up.
   Eddy.clearTrail();
@@ -109,20 +111,17 @@ async function playStudents() {
   }
 }
 
-// 4. Finale: back out to the whole US, fly home, then the trail (his last
-//    CONFIG.eddy.maxTrails flights) lights up. The totals pop-up only shows when
-//    CONFIG.totals.panel is on; otherwise the totals bar at the top covers it.
+// 4. Finale: the Congratulations screen (with confetti) fades in over the map, and Eddy flies
+//    from his last college onto the words. Then the loop starts over at the title.
 async function playFinale() {
-  const panel = CONFIG.totals.panel && students.length;
   Card.hide();
+  Totals.away(true);
   await zoomOut();
-  // The map only shrinks to make room when the totals pop-up is on; otherwise the bar at
-  // the top already shows the totals.
-  await Promise.all([Eddy.flyTo(home, t.flightMs), panel ? MapView.moveToFinale(t.flightMs) : null]);
-  Eddy.highlightTrail(true);
-  MapView.celebrate(true);
-  if (panel) Finale.show(data);
-  await wait(t.finaleHoldMs);
+  await Congrats.show();
+  const from = Eddy.screenPos(), perch = Congrats.perchPoint();
+  const lift = [(from[0] + perch[0]) / 2, Math.min(from[1], perch[1]) - 260];
+  await Eddy.flyScreenPath(quad(from, lift, perch), t.congratsFlyInMs);
+  await wait(t.congratsHoldMs);
 }
 
 async function loadData() {
@@ -142,12 +141,13 @@ async function loadData() {
   const stage = document.getElementById("stage");
   await MapView.init(stage);
   Title.init();
+  Congrats.init();
   Eddy.init();
   Card.init(stage);
-  Finale.init(stage);
+  Totals.init();
   data = await loadData();
   Debug.init(data);
-  Finale.setBar(data);
+  Totals.setBar(data);
   students = Data.playOrder(data.batch.filter(data.playable));
   Card.preload(students);
   home = MapView.project(CONFIG.woodward.lon, CONFIG.woodward.lat);

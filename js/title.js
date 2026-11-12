@@ -22,11 +22,32 @@ const Title = (() => {
     g.append("rect").attr("x", -1920).attr("y", -1080).attr("width", 5760).attr("height", 3240)
       .attr("fill", "url(#title-bg)");
 
-    g.append("text").attr("class", "title-kicker").attr("x", 960).attr("y", 370)
+    g.append("text").attr("class", "title-kicker").attr("x", 960).attr("y", 330)
       .text(cfg.kicker.replace("{year}", classYear()));
-    line1 = g.append("text").attr("class", "title-line").attr("x", 960).attr("y", 545).text(cfg.lines[0]);
-    g.append("text").attr("class", "title-line").attr("x", 960).attr("y", 690).text(cfg.lines[1]);
-    g.append("line").attr("class", "title-rule").attr("x1", 860).attr("x2", 1060).attr("y1", 410).attr("y2", 410);
+    line1 = g.append("text").attr("class", "title-line").attr("x", 960).attr("y", 505).text(cfg.lines[0]);
+    g.append("text").attr("class", "title-line").attr("x", 960).attr("y", 650).text(cfg.lines[1]);
+    g.append("line").attr("class", "title-rule").attr("x1", 860).attr("x2", 1060).attr("y1", 370).attr("y2", 370);
+    addCountdown(g, 805);
+  }
+
+  // Days left until graduation (CONFIG.graduation), e.g. "177 days until graduation · May 8, 2027".
+  // The page reloads every day, so it's worked out once per load. Gone after graduation day.
+  function addCountdown(parent, y) {
+    const cfg = CONFIG.graduation;
+    if (!cfg || !cfg.date) return;
+    const [yy, mm, dd] = cfg.date.split("-").map(Number);
+    const grad = new Date(yy, mm - 1, dd);
+    const days = Math.round((grad - Data.today()) / 86400000);   // both at midnight
+    if (days < 0) return;
+    const when = grad.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const text = parent.append("text").attr("class", "countdown").attr("x", 960).attr("y", y);
+    if (days === 0) {
+      text.append("tspan").attr("class", "countdown-num").text(cfg.todayLabel);
+    } else {
+      text.append("tspan").attr("class", "countdown-num").text(days.toLocaleString("en-US"));
+      text.append("tspan").text(` ${days === 1 ? "day" : "days"} ${cfg.label}`);
+    }
+    text.append("tspan").attr("class", "countdown-date").text(` · ${when}`);
   }
 
   // Where Eddy stands: on top of the last word of the first line (screen coords).
@@ -45,5 +66,5 @@ const Title = (() => {
     });
   }
 
-  return { init, perchPoint, show: () => fade(1), hide: () => fade(0) };
+  return { init, perchPoint, classYear, addCountdown, show: () => fade(1), hide: () => fade(0) };
 })();

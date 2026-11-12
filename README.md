@@ -29,7 +29,7 @@ out the scholarship amounts and adding the year's total, and it's the only tab t
    that aren't in it).
    Status is `Accepted` or `Committed` (blank counts as Accepted). Committed students get a solid
    crimson tag and a solid pin; accepted ones get an outlined tag and a ring pin. A student can
-   have several Accepted rows (one per college); the finale counts each student once.
+   have several Accepted rows (one per college); the totals bar counts each student once.
    Photo is optional: the student's yearbook photo for the card. Paste a Google Drive link (share
    the photo as "Anyone with the link"), or put the file in `assets/photos/` and type its file name.
    Left blank, a student gets the photo in `assets/photos/` named after them (see "Photos in the site" below).
@@ -46,8 +46,9 @@ out the scholarship amounts and adding the year's total, and it's the only tab t
 everyone entered so far and phases nobody out. Set it to `false` to start the Friday cycle below.
 
 Counselors add a new group every Friday, with that Friday's date as its Rotation start. The page plays
-only rows from the latest rotation date on or before today, so each Friday's group replaces the
-previous one (and stays up until the next group starts). Between loops it reloads when the date changes,
+only rows from the latest rotation date on or before today, so each Friday's group of acceptances replaces the
+previous one (and stays up until the next group starts). Commitments stay: a Committed row plays in every
+rotation from its week on (`rotation.keepCommitted`), so only the Accepted students change each Friday. Between loops it reloads when the date changes,
 and it checks the sheet every hour (`refresh.checkMinutes`) and reloads if anything changed, so a group
 entered Friday afternoon is on the TV within the hour. Rows play in sheet order, except that a student's colleges are spread out (everyone's first
 college, then everyone's second), a Georgia college never plays first, and the same college or
@@ -138,7 +139,9 @@ matched, and any flagged rows. Add `&today=2026-11-20` to preview another date.
 | Atlanta-area zoom for nearby colleges (radius, zoom level) | `map.local` in [js/config.js](js/config.js) |
 | College colors and nicknames, colleges missing from IPEDS | [data/college-extras.json](data/college-extras.json) |
 | A college's logo on the card is wrong or missing: put an image in `assets/logos/` and add `"logo": "assets/logos/name.png"` to that college | [data/college-extras.json](data/college-extras.json) |
-| Totals: bar at the top (`totals.bar`), end-of-cycle pop-up (`totals.panel`, off) | `totals` in [js/config.js](js/config.js) |
+| Totals bar at the top (`totals.bar`) | `totals` in [js/config.js](js/config.js) |
+| Graduation date for the days-left countdown on the title and Congratulations screens | `graduation` in [js/config.js](js/config.js) |
+| End-of-loop Congratulations screen wording (confetti colors: top of [js/congrats.js](js/congrats.js)) | `congrats` in [js/config.js](js/config.js) |
 | Turn card logos off, or stop using website icons as a fallback | `card.logos` in [js/config.js](js/config.js) |
 | Which Eddy plays: `"drawn"` or `"higgsfield"` (compare both at `/tools/eddy-sheet.html`, or add `?eddy=higgsfield` to the URL) | `eddy.art` in [js/config.js](js/config.js) |
 | Eddy artwork (facing right; 2+ wing frames + perched) | `assets/eddy/` (drawn, `tools/draw_eddy.py`), `assets/eddy-hf/` (Higgsfield, fitted by `tools/fit_eddy_png.py`) |

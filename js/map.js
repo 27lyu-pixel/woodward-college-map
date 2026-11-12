@@ -36,6 +36,7 @@ const MapView = (() => {
     layers.trails = svg.append("g").attr("class", "trails");
     overlay = svg.append("g").attr("class", "overlay");
     layers.title = svg.append("g").attr("class", "title");   // covers the map; Eddy flies above it
+    layers.congrats = svg.append("g").attr("class", "congrats");   // end of each loop, over the title
     layers.actors = svg.append("g").attr("class", "actors");
     CONFIG.map.closeupLabels.forEach(addPlaceLabel);
     addWoodwardPin();
@@ -71,8 +72,6 @@ const MapView = (() => {
   function addDestination(lon, lat, color, status = "accepted") {
     const committed = status === "committed";
     const g = overlay.append("g").attr("class", `destination ${status}`);
-    g.append("circle").attr("class", "dest-ring").attr("r", committed ? 14 : 10)
-      .style("animation-delay", `${(markers.filter(m => m.destination).length % 6) * 0.25}s`);
     g.append("circle").attr("class", "dest-dot").attr("r", committed ? 14 : 9)
       // No college color: charcoal, so the white star still shows on a committed pin.
       .style(committed ? "fill" : "stroke", color || (committed ? "var(--wa-charcoal)" : null));
@@ -175,13 +174,7 @@ const MapView = (() => {
     cameraListeners.forEach(fn => fn());
   }
 
-  // US map shrunk and lifted to leave room for the totals panel at the bottom.
-  function finaleView() {
-    const { scale: k, lift } = CONFIG.map.finale;
-    return [W / 2, H / 2 + lift / k, W / k];
-  }
-
-  function showCloseup() { highlightState(null); apply(closeupView()); celebrate(false); }
+  function showCloseup() { highlightState(null); apply(closeupView()); }
 
   // A view that fits a state (full name) in the half of the screen away from the student
   // card: side "left" = card on the left, so the state sits in the right half.
@@ -218,9 +211,6 @@ const MapView = (() => {
   }
   function showUS() { apply(usView()); }
 
-  // Finale: college pins pulse.
-  function celebrate(on) { overlay.classed("celebrate", on); }
-
   // Smooth camera move between two views (van Wijk zoom). Resolves when done.
   function flyTo(target, duration) {
     const interp = d3.interpolateZoom(current, target);
@@ -243,11 +233,10 @@ const MapView = (() => {
   }
 
   const zoomOutToUS = duration => flyTo(usView(), duration);
-  const moveToFinale = duration => flyTo(finaleView(), duration);
 
   return {
     init, project, stateLonLat, toScreen, fromScreen, onCamera, layers,
     addDestination, clearDestinations, fitView, stateView, stateSide, highlightState,
-    showCloseup, showUS, flyTo, zoomOutToUS, moveToFinale, celebrate,
+    showCloseup, showUS, flyTo, zoomOutToUS,
   };
 })();
