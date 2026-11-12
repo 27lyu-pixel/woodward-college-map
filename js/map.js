@@ -74,7 +74,8 @@ const MapView = (() => {
     g.append("circle").attr("class", "dest-ring").attr("r", committed ? 14 : 10)
       .style("animation-delay", `${(markers.filter(m => m.destination).length % 6) * 0.25}s`);
     g.append("circle").attr("class", "dest-dot").attr("r", committed ? 14 : 9)
-      .style(committed ? "fill" : "stroke", color || null);
+      // No college color: charcoal, so the white star still shows on a committed pin.
+      .style(committed ? "fill" : "stroke", color || (committed ? "var(--wa-charcoal)" : null));
     // White star so a committed pin reads as committed even when its color is close to the map's.
     if (committed) g.append("path").attr("class", "dest-star").attr("d", d3.symbol(d3.symbolStar, 120)());
     const m = addMarker(g, lon, lat, "always");
