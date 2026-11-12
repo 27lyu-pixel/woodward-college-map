@@ -32,8 +32,9 @@ out the scholarship amounts and adding the year's total, and it's the only tab t
    have several Accepted rows (one per college); the finale counts each student once.
    Photo is optional: the student's yearbook photo for the card. Paste a Google Drive link (share
    the photo as "Anyone with the link"), or put the file in `assets/photos/` and type its file name.
+   Left blank, a student gets the photo in `assets/photos/` named after them (see "Photos in the site" below).
    Students without a photo show their initials. Turn the spot off with `card.photos` in [js/config.js](js/config.js).
-   To fill in Photo automatically, see "Match photos automatically" below.
+   To fill in Photo automatically from a Drive folder, see "Match photos automatically" below.
    Scholarship is optional and private: see "Scholarship total" below.
 2. **File → Share → Publish to web → Published content & settings**: tick **only TV feed**. Never
    Students or "Entire document": those would publish each student's scholarship amount.
@@ -80,6 +81,21 @@ never who got what. Every offer counts, including colleges the student turned do
 The totals bar at the top shows "$X in scholarships", whatever `totals.scope` is set to, and hides it
 when the total is blank or 0. The `?debug=1` panel shows the total it read, and
 warns if the published sheet has per-student amounts (meaning the Students tab was published by mistake).
+
+## Photos in the site
+The senior portraits live in `assets/photos/`, one per student, named the way the sheet spells them
+(`Jane Doe.jpg`). A student whose Photo cell is blank gets the photo with their name. Capital letters,
+accents, punctuation and word order don't matter, but a nickname does: "Sam Hartman.jpg" won't match
+"Samuel Hartman" on the sheet. The `?debug=1` panel lists every student it found no photo for.
+
+To add photos, download them from Drive (right-click the folder → Download), unzip, and run:
+
+    python3 tools/import_photos.py "path/to/the folder"
+
+It renames `Doe,Jane.JPG` to `Jane Doe.jpg`, shrinks each photo for the TV, and updates
+`assets/photos/index.json`, the list the slideshow reads. After renaming or deleting a photo by hand,
+run `python3 tools/import_photos.py` (no folder) to update the list. This repo is public, so anything in
+`assets/photos/` can be seen by anyone on GitHub.
 
 ## Match photos automatically
 [sheet/match-photos.gs](sheet/match-photos.gs) is a small script that lives in the Google Sheet. About once an

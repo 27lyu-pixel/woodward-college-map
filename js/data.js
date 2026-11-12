@@ -7,6 +7,8 @@
 // adds "Scholarship total" (the sum, in its first row). Only the TV feed tab is published.
 // - Status is "Accepted" or "Committed" (blank = CONFIG.categories.default).
 // - Photo is optional: the student's yearbook photo (Google Drive link or a file in assets/photos/).
+//   Left blank, the student gets the photo in assets/photos/ that has their name (listed in
+//   assets/photos/index.json by tools/import_photos.py).
 // - City and State are optional: they're filled in from the matched college. They're only
 //   needed to tell apart same-named colleges, or to place a college that isn't in the list.
 // - The current rotation is the latest "Rotation start" on or before today (or, with
@@ -154,6 +156,18 @@ const Data = (() => {
     };
   }
 
+  // "Doe, Jane" / "JANE DOE.jpg" -> "doe jane": the same key as sheet/match-photos.gs.
+  const nameKey = s => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()
+    .split(" ").filter(Boolean).sort().join(" ");
+
+  // name key -> file in assets/photos/, from assets/photos/index.json
+  function photoIndex(files) {
+    const index = new Map();
+    for (const f of Array.isArray(files) ? files : []) index.set(nameKey(f.replace(/\.[^.]+$/, "")), f);
+    return index;
+  }
+
   // Photo cell -> image URL. Google Drive share links become Drive's image link; other web
   // links are used as is; anything else is a file name in assets/photos/.
   function photoUrl(text) {
@@ -187,11 +201,13 @@ const Data = (() => {
 
   async function load() {
     const flags = [];
-    const [text, ipeds, extras] = await Promise.all([
+    const [text, ipeds, extras, photoList] = await Promise.all([
       fetchCsv(flags),
       d3.json("data/colleges.json"),
       d3.json("data/college-extras.json"),
+      d3.json("assets/photos/index.json").catch(() => []),
     ]);
+    const photoFiles = photoIndex(photoList);
     buildIndex(ipeds, extras);
 
     loadedText = text;
@@ -239,7 +255,7 @@ const Data = (() => {
         flags.push({ row, message: `Status "${get("status")}" isn't Accepted or Committed; showing it as ${CONFIG.categories[status].label}.` });
       }
       rows.push({ row, date, student, college, city: get("city"), state: get("state").toUpperCase(), status,
-                  photo: photoUrl(get("photo")) });
+                  photo: photoUrl(get("photo") || photoFiles.get(nameKey(student)) || "") });
     });
 
     const now = today();
@@ -269,6 +285,7 @@ const Data = (() => {
         if (!r.skip && !MapView.project(r.lon, r.lat)) r.skip = `"${r.college}" is outside the US map.`;
       }
       const inBatch = CONFIG.rotation.paused || +r.date === +rotation;
+      if (!r.skip && !r.photo && photoFiles.size && CONFIG.card.photos.enabled) r.warn = r.warn || `No photo: name a photo "${r.student}.jpg" in assets/photos/ or fill in the Photo cell.`;
       if (r.skip) flags.push({ row: r.row, message: `${r.student || "(no name)"}: ${r.skip} Not shown.`, inBatch });
       else if (r.warn) flags.push({ row: r.row, message: `${r.student}: ${r.warn}`, inBatch });
     }
