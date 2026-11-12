@@ -23,13 +23,12 @@ const Congrats = (() => {
     confetti = g.append("g").attr("class", "confetti");
 
     const year = Title.classYear();
-    g.append("text").attr("class", "title-kicker").attr("x", 960).attr("y", 330).text(cfg.kicker);
-    g.append("line").attr("class", "title-rule").attr("x1", 860).attr("x2", 1060).attr("y1", 370).attr("y2", 370);
-    line1 = g.append("text").attr("class", "title-line congrats-big").attr("x", 960).attr("y", 525)
+    g.append("text").attr("class", "title-kicker").attr("x", 960).attr("y", 370).text(cfg.kicker);
+    g.append("line").attr("class", "title-rule").attr("x1", 860).attr("x2", 1060).attr("y1", 410).attr("y2", 410);
+    line1 = g.append("text").attr("class", "title-line congrats-big").attr("x", 960).attr("y", 570)
       .text(cfg.lines[0].replace("{year}", year));
-    g.append("text").attr("class", "title-line congrats-small").attr("x", 960).attr("y", 665)
+    g.append("text").attr("class", "title-line congrats-small").attr("x", 960).attr("y", 710)
       .text(cfg.lines[1].replace("{year}", year));
-    Title.addCountdown(g, 805);
   }
 
   // Where Eddy stands: on top of the end of the first line (screen coords).

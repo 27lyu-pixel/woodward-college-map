@@ -13,8 +13,8 @@ const CONFIG = {
     kicker: "Woodward Academy · Class of {year}",   // {year} = this year's seniors
   },
 
-  // Days-until-graduation line under the title and on the Congratulations screen
-  // (e.g. "177 days until graduation · May 8, 2027"). It goes away the day after.
+  // Days until graduation, first thing on the bar at the top of the screen
+  // (e.g. "177 days until graduation · May 8"). It goes away the day after.
   graduation: { date: "2027-05-08", label: "until graduation", todayLabel: "Graduation day!" },
 
   // End of each loop: Eddy flies to this screen (with confetti), then back to the title.
@@ -66,7 +66,7 @@ const CONFIG = {
     titles: { batch: "This rotation", season: "This season so far" },
     // Next to the commitments: the sheet's "Scholarship total", for the whole year whatever the
     // scope above (hidden when the sheet has none or it's 0).
-    // The totals on a slim bar at the top of the screen.
+    // The totals on the slim bar at the top of the screen, after the graduation countdown.
     bar: true,
     barScholarshipLabel: "in scholarships",
   },

@@ -140,7 +140,7 @@ matched, and any flagged rows. Add `&today=2026-11-20` to preview another date.
 | College colors and nicknames, colleges missing from IPEDS | [data/college-extras.json](data/college-extras.json) |
 | A college's logo on the card is wrong or missing: put an image in `assets/logos/` and add `"logo": "assets/logos/name.png"` to that college | [data/college-extras.json](data/college-extras.json) |
 | Totals bar at the top (`totals.bar`) | `totals` in [js/config.js](js/config.js) |
-| Graduation date for the days-left countdown on the title and Congratulations screens | `graduation` in [js/config.js](js/config.js) |
+| Graduation date for the days-left countdown on the bar at the top | `graduation` in [js/config.js](js/config.js) |
 | End-of-loop Congratulations screen wording (confetti colors: top of [js/congrats.js](js/congrats.js)) | `congrats` in [js/config.js](js/config.js) |
 | Turn card logos off, or stop using website icons as a fallback | `card.logos` in [js/config.js](js/config.js) |
 | Which Eddy plays: `"drawn"` or `"higgsfield"` (compare both at `/tools/eddy-sheet.html`, or add `?eddy=higgsfield` to the URL) | `eddy.art` in [js/config.js](js/config.js) |

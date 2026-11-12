@@ -17,7 +17,6 @@ const quad = (a, c, b) => s => [0, 1].map(i => (1 - s) ** 2 * a[i] + 2 * (1 - s)
 //    Congratulations screen and he flies across from his perch there.
 async function playTitle(first) {
   const from = first ? [-160, 300] : Eddy.screenPos();
-  Totals.away(false);
   await Promise.all([Title.show(), first ? null : Congrats.hide(), Card.hide()]);
 
   // Hidden behind the title: reset the map to the close-up.
@@ -115,7 +114,6 @@ async function playStudents() {
 //    from his last college onto the words. Then the loop starts over at the title.
 async function playFinale() {
   Card.hide();
-  Totals.away(true);
   await zoomOut();
   await Congrats.show();
   const from = Eddy.screenPos(), perch = Congrats.perchPoint();

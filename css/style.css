@@ -80,25 +80,28 @@ html, body {
 .destination.accepted .dest-dot { fill: var(--wa-white); stroke: var(--wa-charcoal); stroke-width: 6; }
 .dest-star { fill: var(--wa-white); }
 
-/* Totals bar at the top (hidden on the Congratulations screen) */
+/* Bar at the top: days until graduation and the totals, on screen the whole loop */
 .statbar {
   position: absolute; left: 50%; top: 28px; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 30px; white-space: nowrap;
-  padding: 14px 34px; border-radius: 999px;
+  display: flex; align-items: center; gap: 24px; white-space: nowrap;
+  padding: 14px 30px; border-radius: 999px;
   background: rgba(94, 18, 32, 0.82); color: var(--wa-white);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  font-family: var(--font); font-size: 25px; font-weight: 600;
+  font-family: var(--font); font-size: 23px; font-weight: 600;
   transition: opacity 500ms ease, transform 500ms ease;
 }
-.statbar.away { opacity: 0; transform: translate(-50%, -30px); }
 .statbar.off { display: none; }
 .statbar b { font-weight: 800; font-variant-numeric: tabular-nums; }
 .bar-title { font-size: 18px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.75; }
 .bar-item { display: inline-flex; align-items: center; gap: 9px; }
-.bar-item + .bar-item::before { content: ""; width: 1px; height: 26px; margin-right: 21px; background: rgba(255, 255, 255, 0.35); }
+.bar-item + .bar-item::before { content: ""; width: 1px; height: 26px; margin-right: 15px; background: rgba(255, 255, 255, 0.35); }
 .bar-pin { width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box; }
 .bar-pin.committed { background: var(--wa-white); }
 .bar-pin.accepted { border: 4px solid var(--wa-white); }
+.bar-countdown b { font-size: 28px; }
+.bar-countdown:not(:last-child) { padding-right: 24px; border-right: 2px solid rgba(255, 255, 255, 0.35); }
+/* Too wide for the screen (e.g. with the scholarship total): js/totals.js drops these first */
+.statbar.tight .bar-title, .statbar.tighter .bar-date { display: none; }
 
 /* Student card */
 /* HTML layer over the map, sized like the stage and scaled by js/ui.js */
@@ -182,14 +185,6 @@ html, body {
   font-family: var(--font); font-size: 34px; font-weight: 700;
   letter-spacing: 0.22em; text-transform: uppercase; text-anchor: middle;
 }
-/* Days until graduation, under the title and the Congratulations screen */
-.countdown {
-  fill: var(--wa-white);
-  font-family: var(--font); font-size: 34px; font-weight: 700;
-  letter-spacing: 0.16em; text-transform: uppercase; text-anchor: middle;
-}
-.countdown-num { font-size: 68px; font-weight: 800; letter-spacing: 0; }
-.countdown-date { fill: rgba(255, 255, 255, 0.75); }
 .congrats-big { font-size: 160px; }
 .congrats-small { font-size: 96px; }
 .confetti rect { shape-rendering: optimizeSpeed; }
