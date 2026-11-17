@@ -103,14 +103,6 @@ html, body {
 /* Too wide for the screen (e.g. with the scholarship total): js/totals.js drops these first */
 .statbar.tight .bar-title, .statbar.tighter .bar-date { display: none; }
 
-/* Credit in the bottom-right corner (CONFIG.credit); below the student card's bottom edge */
-.credit {
-  position: absolute; right: 30px; bottom: 18px;
-  font-family: var(--font); font-size: 20px; font-weight: 600; letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.7);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-}
-
 /* Student card */
 /* HTML layer over the map, sized like the stage and scaled by js/ui.js */
 #ui { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0;
