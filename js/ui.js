@@ -13,5 +13,8 @@ const UI = (() => {
   addEventListener("resize", fit);
   fit();
 
+  // Credit in the corner, on screen the whole loop (CONFIG.credit).
+  if (CONFIG.credit) d3.select(el).append("div").attr("class", "credit").text(CONFIG.credit);
+
   return { layer: () => d3.select(el) };
 })();

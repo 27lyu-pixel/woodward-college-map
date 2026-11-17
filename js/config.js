@@ -8,6 +8,9 @@ const CONFIG = {
     csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQw1De9-COY-VSwSg_EXrWxnQRG7Lv2XCAGcZTQ_NrRZ3GtD_KtfhVCPS9MVtpRa78bkxWeyNqy9zTK/pub?gid=1336388585&single=true&output=csv",
   },
 
+  // Small credit in the bottom-right corner, on screen the whole loop ("" to hide it).
+  credit: "Made by Lawrence Yu",
+
   title: {
     lines: ["Where are our senior", "War Eagles headed?"],
     kicker: "Woodward Academy · Class of {year}",   // {year} = this year's seniors
